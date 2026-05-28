@@ -88,4 +88,62 @@ class TaskTest < ActiveSupport::TestCase
     new_task = board.tasks.create!(name: "Appended", user: users(:one), column: column)
     assert_equal existing_max + 1, new_task.position
   end
+
+  test "filter_by q matches name or description ILIKE" do
+    board = boards(:one_default)
+    match_name = Task.create!(board: board, column: board.columns.first, user: users(:one), name: "Neymar treina hoje")
+    match_desc = Task.create!(board: board, column: board.columns.first, user: users(:one), name: "Random", description: "Vai ter Neymar no jogo")
+    nope = Task.create!(board: board, column: board.columns.first, user: users(:one), name: "Outro time")
+
+    result = Task.filter_by({ q: "neymar" }, board: board)
+    assert_includes result, match_name
+    assert_includes result, match_desc
+    assert_not_includes result, nope
+  end
+
+  test "filter_by tag uses ANY-of when single, AND when multiple" do
+    board = boards(:one_default)
+    col = board.columns.first
+    t_a = Task.create!(board: board, column: col, user: users(:one), name: "A", tags: ["categoria:selecao", "topic:x"])
+    t_b = Task.create!(board: board, column: col, user: users(:one), name: "B", tags: ["categoria:selecao"])
+    t_c = Task.create!(board: board, column: col, user: users(:one), name: "C", tags: ["categoria:brasileirao"])
+
+    single = Task.filter_by({ tag: "categoria:selecao" }, board: board)
+    assert_equal [t_a, t_b].map(&:id).sort, single.pluck(:id).sort
+
+    both = Task.filter_by({ tag: ["categoria:selecao", "topic:x"] }, board: board)
+    assert_equal [t_a.id], both.pluck(:id)
+  end
+
+  test "filter_by column resolves by name to id" do
+    board = boards(:one_default)
+    inbox = board.columns.find_by(name: "Inbox")
+    done = board.columns.find_by(name: "Done")
+    in_inbox = Task.create!(board: board, column: inbox, user: users(:one), name: "I")
+    in_done = Task.create!(board: board, column: done, user: users(:one), name: "D")
+
+    result = Task.filter_by({ column: "Inbox" }, board: board)
+    assert_includes result, in_inbox
+    assert_not_includes result, in_done
+  end
+
+  test "filter_by touched_by joins TaskActivity actor_type" do
+    board = boards(:one_default)
+    col = board.columns.first
+    task = Task.create!(board: board, column: col, user: users(:one), name: "T")
+    TaskActivity.create!(task: task, actor_type: "moderador", action: "moved", new_value: "Rejeitado")
+
+    result = Task.filter_by({ touched_by: "moderador" }, board: board)
+    assert_includes result, task
+  end
+
+  test "filter_by combines dimensions with AND" do
+    board = boards(:one_default)
+    col = board.columns.first
+    hit = Task.create!(board: board, column: col, user: users(:one), name: "Neymar", tags: ["categoria:selecao"])
+    miss_tag = Task.create!(board: board, column: col, user: users(:one), name: "Neymar", tags: ["categoria:outros"])
+
+    result = Task.filter_by({ q: "neymar", tag: "categoria:selecao" }, board: board)
+    assert_equal [hit.id], result.pluck(:id)
+  end
 end

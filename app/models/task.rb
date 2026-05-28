@@ -37,6 +37,34 @@ class Task < ApplicationRecord
   scope :unassigned, -> { where(assigned_agent_id: nil) }
   default_scope { order(completed: :asc, position: :asc) }
 
+  scope :filter_by, ->(params, board:) {
+    rel = where(board: board)
+
+    if params[:q].present?
+      like = "%#{ActiveRecord::Base.sanitize_sql_like(params[:q])}%"
+      rel = rel.where("name ILIKE :like OR description ILIKE :like", like: like)
+    end
+
+    tags = Array(params[:tag]).reject(&:blank?)
+    tags.each do |tag|
+      rel = rel.where("tags @> ARRAY[?]::varchar[]", tag)
+    end
+
+    cols = Array(params[:column]).reject(&:blank?)
+    if cols.any?
+      column_ids = board.columns.where(name: cols).pluck(:id)
+      rel = rel.where(column_id: column_ids)
+    end
+
+    actors = Array(params[:touched_by]).reject(&:blank?)
+    if actors.any?
+      task_ids = TaskActivity.where(actor_type: actors).distinct.pluck(:task_id)
+      rel = rel.where(id: task_ids)
+    end
+
+    rel
+  }
+
   # Returns true if the task is sitting in the board's "Done" column.
   def done?
     column&.name == "Done"
