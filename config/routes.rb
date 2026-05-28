@@ -71,6 +71,7 @@ Rails.application.routes.draw do
 
   # Boards (multi-board kanban views)
   resources :boards, only: [ :index, :show, :create, :update, :destroy ] do
+    get :list, on: :member
     patch :update_task_status, on: :member
     patch :update_task_column, on: :member, action: :update_task_status
     resources :columns, except: [ :index ] do

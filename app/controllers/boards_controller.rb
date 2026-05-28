@@ -41,6 +41,20 @@ class BoardsController < ApplicationController
     @agents = current_user.agents
   end
 
+  def list
+    @board = current_user.boards.find(params[:id])
+    sort_col = %w[name updated_at created_at].include?(params[:sort]) ? params[:sort] : "updated_at"
+    order = params[:order] == "asc" ? :asc : :desc
+    filtered = Task.filter_by(params, board: @board).reorder(sort_col => order)
+    per = 25
+    page = [ params[:page].to_i, 1 ].max
+    @tasks = filtered.limit(per).offset((page - 1) * per)
+    @tasks_total_count = filtered.count
+    @tasks_current_page = page
+    @tasks_total_pages = (@tasks_total_count.to_f / per).ceil
+    @tasks_per_page = per
+  end
+
   def create
     @board = current_user.boards.new(board_params)
 
