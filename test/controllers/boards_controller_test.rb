@@ -13,6 +13,17 @@ class BoardsControllerTest < ActionDispatch::IntegrationTest
     assert_select "[data-list-view]"
   end
 
+  test "GET list shows table rows for filtered tasks" do
+    col = @board.columns.first
+    task = Task.create!(board: @board, column: col, user: @user, name: "Findable", tags: [ "categoria:selecao" ])
+    Task.create!(board: @board, column: col, user: @user, name: "Excluded", tags: [ "categoria:outros" ])
+
+    get list_board_url(@board, tag: "categoria:selecao")
+    assert_response :success
+    assert_includes @response.body, "Findable"
+    assert_not_includes @response.body, "Excluded"
+  end
+
   test "GET show filters tasks by q param" do
     col = @board.columns.first
     hit = Task.create!(board: @board, column: col, user: @user, name: "Neymar grande")

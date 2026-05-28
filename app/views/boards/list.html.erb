@@ -1,5 +1,58 @@
-<div data-list-view class="p-4">
-  <h1 class="font-display text-2xl text-white mb-4"><%= @board.icon %> <%= @board.name %> &mdash; List view</h1>
-  <%# filter bar vai entrar aqui na Task 3 %>
-  <p class="text-content-muted text-sm">Tasks: <%= @tasks_total_count %></p>
+<div data-list-view class="p-4 max-w-6xl mx-auto">
+  <header class="flex items-center justify-between mb-4">
+    <h1 class="font-display text-2xl text-white">
+      <%= @board.icon %> <%= @board.name %> &mdash; List view
+    </h1>
+    <%= link_to "<- Voltar ao Kanban".html_safe, board_path(@board), class: "text-xs text-content-muted hover:text-content uppercase tracking-[0.14em]" %>
+  </header>
+
+  <%= render "shared/filter_bar", board: @board %>
+
+  <p class="text-content-muted text-sm mb-2">
+    <%= @tasks_total_count %> task(s).
+  </p>
+
+  <table class="w-full border border-border text-sm">
+    <thead class="bg-bg-elevated">
+      <tr>
+        <th class="text-left px-3 py-2 font-bold uppercase tracking-wider text-xs">
+          <%= link_to "Name", url_for(request.query_parameters.merge(sort: "name", order: (params[:sort] == "name" && params[:order] == "asc") ? "desc" : "asc")), class: "text-content hover:text-white" %>
+        </th>
+        <th class="text-left px-3 py-2 font-bold uppercase tracking-wider text-xs">Column</th>
+        <th class="text-left px-3 py-2 font-bold uppercase tracking-wider text-xs">Tags</th>
+        <th class="text-left px-3 py-2 font-bold uppercase tracking-wider text-xs">
+          <%= link_to "Updated", url_for(request.query_parameters.merge(sort: "updated_at", order: (params[:sort] == "updated_at" && params[:order] == "asc") ? "desc" : "asc")), class: "text-content hover:text-white" %>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @tasks.each do |task| %>
+        <tr class="border-t border-border hover:bg-bg-elevated">
+          <td class="px-3 py-2">
+            <%= link_to task.name, board_task_path(@board, task), class: "text-white hover:underline" %>
+          </td>
+          <td class="px-3 py-2 text-content-muted"><%= task.column&.name %></td>
+          <td class="px-3 py-2">
+            <% (task.tags || []).each do |tag| %>
+              <span class="inline-block bg-bg-elevated border border-border text-content-muted px-2 py-0.5 text-xs"><%= tag %></span>
+            <% end %>
+          </td>
+          <td class="px-3 py-2 text-content-muted text-xs"><%= task.updated_at.strftime("%d/%m %H:%M") %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <%# Paginacao manual (sem kaminari) %>
+  <% if @tasks_total_pages.to_i > 1 %>
+    <nav class="flex gap-2 mt-4 items-center text-xs">
+      <% if @tasks_current_page > 1 %>
+        <%= link_to "<- Anterior".html_safe, url_for(request.query_parameters.merge(page: @tasks_current_page - 1)), class: "text-content-muted hover:text-content uppercase" %>
+      <% end %>
+      <span class="text-content-muted"><%= @tasks_current_page %> / <%= @tasks_total_pages %></span>
+      <% if @tasks_current_page < @tasks_total_pages %>
+        <%= link_to "Proxima ->".html_safe, url_for(request.query_parameters.merge(page: @tasks_current_page + 1)), class: "text-content-muted hover:text-content uppercase" %>
+      <% end %>
+    </nav>
+  <% end %>
 </div>
