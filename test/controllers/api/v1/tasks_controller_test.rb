@@ -5,7 +5,9 @@ class Api::V1::TasksControllerTest < ActionDispatch::IntegrationTest
     @user = users(:one)
     @api_token = api_tokens(:one)
     @task = tasks(:one)
-    @auth_header = { "Authorization" => "Bearer #{@api_token.token}" }
+    # Fixture raw token — digest stored in fixtures/api_tokens.yml is SHA256 of this value
+    @raw_token = "test_token_one_abc123def456"
+    @auth_header = { "Authorization" => "Bearer #{@raw_token}" }
   end
 
   # Authentication tests

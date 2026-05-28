@@ -1,0 +1,47 @@
+name: clawdeck-local
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: clawdeck_development
+      POSTGRES_USER: clawdeck
+      POSTGRES_PASSWORD: localdevonly
+    ports:
+      - "127.0.0.1:5433:5432"   # 5433 pra nao conflitar com OMC db (caso ainda rode)
+    volumes:
+      - clawdeck_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clawdeck -d clawdeck_development"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [default, omc]
+
+  app:
+    image: ruby:3.3.1-slim
+    working_dir: /app
+    command: ["bash","-lc","apt-get update -qq && apt-get install -y --no-install-recommends build-essential libpq-dev libyaml-dev git nodejs npm curl >/dev/null && bundle config set --local path 'vendor/bundle' && bundle install --jobs 4 --retry 3 && bin/rails db:prepare && bin/rails server -b 0.0.0.0 -p 3000"]
+    environment:
+      RAILS_ENV: development
+      DATABASE_URL: postgres://clawdeck:localdevonly@db:5432/clawdeck_development
+      BINDING: "0.0.0.0"
+      DISABLE_SPRING: "1"
+    volumes:
+      - .:/app
+      - bundle_cache:/app/vendor/bundle
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:3001:3000"   # 3001 pra nao conflitar com OMC frontend
+    networks: [default, omc]
+
+volumes:
+  clawdeck_pg:
+  bundle_cache:
+
+networks:
+  default:
+  omc:
+    external: true
+    name: openclaw-mission-control_default

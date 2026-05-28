@@ -21,8 +21,10 @@ class ProfilesController < ApplicationController
 
   def regenerate_api_token
     current_user.api_tokens.destroy_all
-    @api_token = current_user.api_tokens.create!
-    redirect_to settings_path, notice: "API token regenerated."
+    @user = current_user
+    @api_token = current_user.api_tokens.create!(name: "Default")
+    flash.now[:notice] = "API token regenerated. Copy it now — it won't be shown again."
+    render :show
   end
 
   private

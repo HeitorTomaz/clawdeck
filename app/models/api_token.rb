@@ -1,7 +1,13 @@
+require "digest"
+
 class ApiToken < ApplicationRecord
   belongs_to :user
 
-  validates :token, presence: true, uniqueness: true
+  # raw_token is set in-memory on creation so the plaintext token can be shown
+  # to the user exactly once. It is never persisted.
+  attr_accessor :raw_token
+
+  validates :token_digest, presence: true, uniqueness: true
   validates :name, presence: true
 
   before_validation :generate_token, on: :create
@@ -9,7 +15,8 @@ class ApiToken < ApplicationRecord
   def self.authenticate(token)
     return nil if token.blank?
 
-    api_token = find_by(token: token)
+    digest = Digest::SHA256.hexdigest(token)
+    api_token = find_by(token_digest: digest)
     return nil unless api_token
 
     api_token.touch(:last_used_at)
@@ -19,6 +26,7 @@ class ApiToken < ApplicationRecord
   private
 
   def generate_token
-    self.token ||= SecureRandom.hex(32)
+    self.raw_token = SecureRandom.hex(32)
+    self.token_digest = Digest::SHA256.hexdigest(raw_token)
   end
 end

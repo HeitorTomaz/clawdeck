@@ -73,8 +73,9 @@
     </p>
 
     <% api_url = "#{request.base_url}/api/v1" %>
-    <% api_token = @api_token.token %>
+    <% api_token = @api_token.raw_token %>
 
+    <% if api_token.present? %>
     <!-- Comprehensive agent prompt -->
     <div data-controller="clipboard">
       <div class="bg-bg-elevated rounded-md max-h-96 overflow-y-auto">
@@ -172,6 +173,17 @@ Body: `{ "name": "Task title", "status": "inbox" }`
             class: "cursor-pointer text-xs text-content-muted hover:text-content-secondary transition-colors" %>
       </div>
     </div>
+    <% else %>
+    <div class="bg-bg-elevated rounded-md px-3 py-3 space-y-3">
+      <p class="text-xs text-content-secondary">
+        Token disponível apenas no momento da criação. Gere um novo se perdeu o anterior.
+      </p>
+      <%= button_to "Regenerate token", regenerate_api_token_settings_path,
+          method: :post,
+          data: { turbo_confirm: "This will invalidate your current token. Continue?" },
+          class: "cursor-pointer text-xs text-content-muted hover:text-content-secondary transition-colors" %>
+    </div>
+    <% end %>
 
     <!-- Connected Agent (within same box) -->
     <div class="pt-4 border-t border-border">
