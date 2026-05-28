@@ -31,9 +31,9 @@
       <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor"><circle cx="2" cy="3" r="1"/><circle cx="8" cy="3" r="1"/><circle cx="2" cy="7" r="1"/><circle cx="8" cy="7" r="1"/><circle cx="2" cy="11" r="1"/><circle cx="8" cy="11" r="1"/></svg>
     </button>
 
-    <div class="rounded-full" style="width:7px;height:7px;background:<%= dot_color %>"></div>
-    <span style="font-size:13px;font-weight:700;color:#bbb"><%= column.name %></span>
-    <span id="column-<%= column.id %>-count" style="font-size:11px;font-weight:600;color:#444;background:rgba(255,255,255,0.04);padding:0 7px;border-radius:5px;line-height:20px"><%= tasks.count %></span>
+    <div style="width:7px;height:7px;background:<%= dot_color %>"></div>
+    <span class="font-display" style="font-size:13px;font-weight:700;color:#ffffff;text-transform:uppercase;letter-spacing:0.12em"><%= column.name %></span>
+    <span id="column-<%= column.id %>-count" style="font-size:10px;font-weight:700;color:#7e7e7e;background:transparent;border:1px solid #262626;padding:0 7px;border-radius:0;line-height:18px;letter-spacing:0.08em"><%= tasks.count %></span>
 
     <%# Agent chip %>
     <% if assigned_agent.present? %>
@@ -84,7 +84,7 @@
   <%# Tasks List %>
   <ul id="column-<%= column.id %>"
       class="flex-1 flex flex-col gap-[5px] min-h-[2rem] overflow-y-hidden hover:overflow-y-auto transition-all duration-[120ms] list-none m-0"
-      style="border-radius:10px;padding:6px;background:rgba(255,255,255,0.01);border:2px solid transparent"
+      style="border-radius:0;padding:6px;background:transparent;border:2px solid transparent;border-top:1px solid #262626"
       data-controller="sortable"
       data-sortable-group-value="board"
       data-sortable-column-id-value="<%= column.id %>"

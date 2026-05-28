@@ -3,7 +3,7 @@
 <% navbar_boards = authenticated? ? (defined?(@boards) && @boards ? @boards : current_user.boards) : [] %>
 <% navbar_current_board = @board || navbar_boards.first %>
 
-<header class="relative flex-shrink-0 flex items-center justify-between h-[52px] bg-transparent" style="position: sticky; top: 0; z-index: 100; background: #161619; padding: 0 24px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+<header class="relative flex-shrink-0 flex items-center justify-between h-[52px] bg-transparent" style="position: sticky; top: 0; z-index: 100; background: #000000; padding: 0 24px; border-bottom: 1px solid #262626;">
   <%# Left section: Board switcher + nav tabs %>
   <div class="flex items-center gap-5">
     <% if authenticated? && navbar_current_board %>
@@ -15,19 +15,19 @@
                 class="flex items-center gap-2 cursor-pointer hover:bg-white/[0.04] px-2 py-1 -ml-2 rounded-lg transition-colors">
           <% if @board %>
             <span class="text-lg"><%= navbar_current_board.icon %></span>
-            <span class="text-sm font-extrabold text-[#e0e0e0] tracking-[-0.02em]"><%= navbar_current_board.name %></span>
+            <span class="text-sm font-display font-extrabold uppercase text-white tracking-[0.02em]"><%= navbar_current_board.name %></span>
           <% elsif controller_name == "profiles" %>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" class="opacity-50">
               <circle cx="8" cy="8" r="2.5" stroke="#888" stroke-width="1.5"/>
               <path d="M8 1V3M8 13V15M1 8H3M13 8H15M3.05 3.05L4.46 4.46M11.54 11.54L12.95 12.95M12.95 3.05L11.54 4.46M4.46 11.54L3.05 12.95" stroke="#888" stroke-width="1.5" stroke-linecap="round"/>
             </svg>
-            <span class="text-sm font-extrabold text-[#e0e0e0] tracking-[-0.02em]">Settings</span>
+            <span class="text-sm font-display font-extrabold uppercase text-white tracking-[0.02em]">Settings</span>
           <% else %>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" class="opacity-50">
               <path d="M2 8.5L8 3L14 8.5" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               <path d="M3.5 7.5V13.5H6.5V10.5H9.5V13.5H12.5V7.5" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            <span class="text-sm font-extrabold text-[#e0e0e0] tracking-[-0.02em]">Home</span>
+            <span class="text-sm font-display font-extrabold uppercase text-white tracking-[0.02em]">Home</span>
           <% end %>
           <svg width="12" height="12" viewBox="0 0 16 16" fill="none" class="opacity-30 ml-0.5 transition-transform" data-dropdown-target="chevron">
             <path d="M4 6L8 10L12 6" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -36,7 +36,7 @@
 
         <%# Board switcher dropdown menu %>
         <div data-dropdown-target="menu"
-             class="hidden absolute left-0 top-full mt-1.5 w-60 p-1.5 rounded-xl border border-white/[0.08] z-50 animate-drop-in <%= @board ? 'bg-bg-card' : 'bg-bg-surface' %>"
+             class="hidden absolute left-0 top-full mt-1.5 w-60 p-1.5 border border-[#3c3c3c] z-50 animate-drop-in <%= @board ? 'bg-bg-card' : 'bg-bg-surface' %>"
              style="box-shadow: 0 20px 50px rgba(0,0,0,0.6);">
           <%# Home link %>
           <% is_home = !@board && controller_name != "profiles" %>
@@ -49,7 +49,7 @@
                 <path d="M3.5 7.5V13.5H6.5V10.5H9.5V13.5H12.5V7.5" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </span>
-            <span class="text-[13px] font-semibold flex-1 truncate <%= is_home ? 'text-[#e0e0e0]' : 'text-[#777]' %>">Home</span>
+            <span class="text-[13px] font-semibold flex-1 truncate <%= is_home ? 'text-white' : 'text-[#777]' %>">Home</span>
             <% if is_home %>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                 <path d="M3 8.5L6.5 12L13 4" stroke="#f0f0f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -71,7 +71,7 @@
                   class: "flex items-center gap-2.5 w-full px-2.5 py-[9px] rounded-lg transition-colors #{is_active ? 'bg-white/[0.06]' : 'hover:bg-white/[0.04]'}",
                   data: { turbo_frame: "_top" } do %>
                 <span class="text-sm w-6 text-center"><%= board.icon %></span>
-                <span class="text-[13px] font-semibold flex-1 truncate <%= is_active ? 'text-[#e0e0e0]' : 'text-[#777]' %>"><%= board.name %></span>
+                <span class="text-[13px] font-semibold flex-1 truncate <%= is_active ? 'text-white' : 'text-[#777]' %>"><%= board.name %></span>
                 <% if is_active %>
                   <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                     <path d="M3 8.5L6.5 12L13 4" stroke="<%= board_color %>" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -97,7 +97,7 @@
     <% elsif authenticated? %>
       <%# Fallback: link to boards if no boards exist yet %>
       <%= link_to boards_path, class: "flex items-center gap-2 text-sm text-content-secondary hover:text-content transition-colors" do %>
-        <span class="text-sm font-extrabold text-[#e0e0e0]">ClawDeck</span>
+        <span class="text-sm font-extrabold text-white">ClawDeck</span>
       <% end %>
     <% else %>
       <%= link_to root_path, class: "flex items-center" do %>
@@ -181,19 +181,19 @@
             <% if current_user.has_avatar? %>
               <%= image_tag current_user.avatar_source, class: "w-full h-full object-cover", alt: "Your avatar" %>
             <% else %>
-              <span class="text-[13px] font-bold text-[#e0e0e0]"><%= current_user.email_address.first.upcase %></span>
+              <span class="text-[13px] font-bold text-white"><%= current_user.email_address.first.upcase %></span>
             <% end %>
           </div>
         </button>
 
         <%# User dropdown menu %>
         <div data-dropdown-target="menu"
-             class="hidden absolute right-0 top-full mt-1.5 w-[220px] p-1.5 rounded-xl border border-white/[0.08] z-50 animate-drop-in <%= @board ? 'bg-bg-card' : 'bg-bg-surface' %>"
+             class="hidden absolute right-0 top-full mt-1.5 w-[220px] p-1.5 border border-[#3c3c3c] z-50 animate-drop-in <%= @board ? 'bg-bg-card' : 'bg-bg-surface' %>"
              style="box-shadow: 0 20px 50px rgba(0,0,0,0.6);">
           <%# User info header %>
           <div class="px-2.5 py-2.5 border-b border-white/[0.06] mb-1">
             <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-lg bg-white/[0.06] flex items-center justify-center text-sm font-bold text-[#e0e0e0] overflow-hidden">
+              <div class="w-8 h-8 rounded-lg bg-white/[0.06] flex items-center justify-center text-sm font-bold text-white overflow-hidden">
                 <% if current_user.has_avatar? %>
                   <%= image_tag current_user.avatar_source, class: "w-full h-full object-cover", alt: "" %>
                 <% else %>
@@ -201,7 +201,7 @@
                 <% end %>
               </div>
               <div class="min-w-0">
-                <div class="text-[13px] font-bold text-[#e0e0e0] truncate"><%= current_user.email_address.split('@').first %></div>
+                <div class="text-[13px] font-bold text-white truncate"><%= current_user.email_address.split('@').first %></div>
                 <div class="text-[11px] font-medium text-[#555] truncate"><%= current_user.email_address %></div>
               </div>
             </div>
