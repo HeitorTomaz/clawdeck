@@ -17,6 +17,8 @@
   <%# Toast container (used for transient errors like delete column with tasks) %>
   <div id="toast-container" class="fixed top-4 right-4 z-[200] flex flex-col gap-2"></div>
 
+  <%= render "shared/filter_bar", board: @board %>
+
   <%# Tag filter indicator %>
   <% if @current_tag.present? %>
     <div class="flex items-center gap-2 px-6 py-2 bg-bg-surface border-b border-border">
@@ -40,7 +42,7 @@
          data-controller="columns"
          data-columns-reorder-url-value="<%= reorder_board_columns_path(@board) %>">
       <% @board.columns.ordered.each do |column| %>
-        <%= render "boards/column", column: column, tasks: (@columns_by_id || {})[column.id] || column.tasks.order(:position) %>
+        <%= render "boards/column", column: column, tasks: (@tasks_by_column || {})[column.id] || column.tasks.order(:position) %>
       <% end %>
 
       <%# Add column button %>

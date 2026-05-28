@@ -17,13 +17,12 @@ class BoardsController < ApplicationController
     @board_page = true
     session[:last_board_id] = @board.id
     @board_columns = @board.columns.includes(:assigned_agent)
-    @tasks = @board.tasks.includes(:user, :assigned_agent)
 
-    # Filter by tag if specified
-    if params[:tag].present?
-      @tasks = @tasks.where("? = ANY(tags)", params[:tag])
-      @current_tag = params[:tag]
-    end
+    # Apply filter scope (q/tag/column/touched_by). Tag param falls back to
+    # single-string legacy usage (still tracked via @current_tag for the badge).
+    filtered = Task.filter_by(params, board: @board).includes(:user, :assigned_agent)
+    @tasks = filtered
+    @current_tag = params[:tag] if params[:tag].is_a?(String) && params[:tag].present?
 
     # Group tasks by their column (dynamic; was previously fixed status enum).
     tasks_by_column = @tasks.group_by(&:column_id)
