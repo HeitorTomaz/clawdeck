@@ -20,7 +20,7 @@ services:
   app:
     image: ruby:3.3.1-slim
     working_dir: /app
-    command: ["bash","-lc","apt-get update -qq && apt-get install -y --no-install-recommends build-essential libpq-dev libyaml-dev git nodejs npm curl >/dev/null && bundle config set --local path 'vendor/bundle' && bundle install --jobs 4 --retry 3 && bin/rails db:prepare && bin/rails server -b 0.0.0.0 -p 3000"]
+    command: ["bash","-lc","apt-get update -qq && apt-get install -y --no-install-recommends build-essential libpq-dev libyaml-dev git nodejs npm curl >/dev/null && bundle config set --local path 'vendor/bundle' && bundle install --jobs 4 --retry 3 && bin/rails db:prepare && bin/rails tailwindcss:build && (bin/rails tailwindcss:watch &) && bin/rails server -b 0.0.0.0 -p 3000"]
     environment:
       RAILS_ENV: development
       DATABASE_URL: postgres://clawdeck:localdevonly@db:5432/clawdeck_development
