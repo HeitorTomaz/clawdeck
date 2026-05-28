@@ -1,6 +1,9 @@
 <% has_current_user = defined?(current_user) && current_user %>
-<% is_done = task.status == "done" %>
+<% task_column = task.column %>
+<% column_name = task_column&.name.to_s %>
+<% is_done = column_name.downcase == "done" %>
 <% board_color = task.board.color || "red" %>
+<% assigned_agent = task.assigned_agent %>
 <li id="task_<%= task.id %>"
     class="group cursor-grab transition-all duration-150 <%= 'opacity-50' if is_done %>"
     style="padding:12px 14px;background:rgba(255,255,255,0.035);border-radius:10px;border:1px solid rgba(255,255,255,0.05)"
@@ -12,35 +15,56 @@
       data-delete-confirm-item-name-value="<%= h(task.name.truncate(30)) %>"
     <% end %>
     data-task-id="<%= task.id %>"
-    data-task-status="<%= task.status %>"
+    data-task-column-id="<%= task.column_id %>"
     data-task-position="<%= task.position %>">
 
   <%# Context Menu (right-click) - only rendered when current_user is available (not during broadcasts) %>
   <% if has_current_user %>
     <button data-dropdown-target="button" class="hidden" aria-expanded="false"></button>
-    <div data-dropdown-target="menu" class="hidden fixed z-[100] min-w-[160px] bg-bg-elevated border border-border rounded-lg shadow-lg py-1">
-      <%# Agent Assignment %>
-      <% agent_connected = current_user.agent_last_active_at.present? %>
-      <% if agent_connected %>
-        <% agent_emoji = current_user.agent_emoji || "🦞" %>
-        <% agent_name = current_user.agent_name || "Agent" %>
-        <% if task.assigned_to_agent? %>
-          <%= button_to unassign_board_task_path(task.board, task),
-              method: :patch,
-              data: { action: "click->dropdown#close" },
-              class: "w-full flex items-center gap-2 px-3 py-2 text-sm text-content-secondary hover:bg-bg-hover transition-colors" do %>
-            <span class="w-4 text-center"><%= agent_emoji %></span>
-            Unassign from <%= agent_name %>
-          <% end %>
-        <% else %>
-          <%= button_to assign_board_task_path(task.board, task),
-              method: :patch,
-              data: { action: "click->dropdown#close" },
-              class: "w-full flex items-center gap-2 px-3 py-2 text-sm text-content-secondary hover:bg-bg-hover transition-colors" do %>
-            <span class="w-4 text-center"><%= agent_emoji %></span>
-            Assign to <%= agent_name %>
-          <% end %>
-        <% end %>
+    <div data-dropdown-target="menu" class="hidden fixed z-[100] min-w-[180px] bg-bg-elevated border border-border rounded-lg shadow-lg py-1">
+      <%# Agent Assignment submenu %>
+      <% user_agents = current_user.respond_to?(:agents) ? current_user.agents.order(:name) : [] %>
+      <% if user_agents.any? %>
+        <div class="relative group/agent">
+          <button type="button" class="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-content-secondary hover:bg-bg-hover transition-colors">
+            <span class="flex items-center gap-2">
+              <span class="w-4 text-center">🤖</span>
+              <%= assigned_agent ? "Reassign agent" : "Assign to agent" %>
+            </span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+            </svg>
+          </button>
+          <div class="absolute left-full top-0 ml-1 hidden group-hover/agent:block min-w-[180px] bg-bg-elevated border border-border rounded-lg shadow-lg py-1">
+            <% user_agents.each do |agent| %>
+              <%= button_to board_task_path(task.board, task),
+                  method: :patch,
+                  params: { task: { assigned_agent_id: agent.id } },
+                  data: { action: "click->dropdown#close" },
+                  class: "w-full flex items-center justify-between gap-3 px-3 py-2 text-sm text-content-secondary hover:bg-bg-hover transition-colors" do %>
+                <span class="flex items-center gap-2">
+                  <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-purple-500/25 text-[9px] font-semibold text-purple-200"><%= agent.name.first.to_s.upcase %></span>
+                  <%= agent.name %>
+                </span>
+                <% if assigned_agent&.id == agent.id %>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3 h-3 text-accent">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                  </svg>
+                <% end %>
+              <% end %>
+            <% end %>
+            <% if assigned_agent %>
+              <div class="border-t border-border my-1"></div>
+              <%= button_to board_task_path(task.board, task),
+                  method: :patch,
+                  params: { task: { assigned_agent_id: "" } },
+                  data: { action: "click->dropdown#close" },
+                  class: "w-full text-left px-3 py-2 text-sm text-content-muted hover:bg-bg-hover transition-colors" do %>
+                Unassign
+              <% end %>
+            <% end %>
+          </div>
+        </div>
         <div class="border-t border-border my-1"></div>
       <% end %>
 
@@ -123,7 +147,7 @@
     }
     show_priority = task.priority.present? && task.priority != "none" && priority_dot_config[task.priority]
     p_cfg = priority_dot_config[task.priority]
-    has_agent = task.assigned_to_agent?
+    has_agent = assigned_agent.present?
     has_hint = task.respond_to?(:agent_hint) && task.agent_hint.present? && !is_done
     has_metadata = show_priority || subtask_total > 0 || has_agent || has_hint
   %>
@@ -156,15 +180,11 @@
     </div>
   <% end %>
 
-  <%# Agent status pill %>
+  <%# Agent chip %>
   <% if has_agent %>
-    <% agent_done = task.status == "done" || task.status == "in_review" %>
-    <div style="display:flex;align-items:center;gap:4px;margin-top:8px;padding:3px 7px;border-radius:6px;background:<%= agent_done ? 'rgba(52,211,153,0.08)' : 'rgba(251,191,36,0.08)' %>;border:1px solid <%= agent_done ? 'rgba(52,211,153,0.10)' : 'rgba(251,191,36,0.10)' %>;width:fit-content">
-      <span style="font-size:9px">🤖</span>
-      <span style="font-size:9px;font-weight:600;color:<%= agent_done ? '#34d399' : '#fbbf24' %>"><%= agent_done ? 'Review' : 'Working' %></span>
-      <% unless agent_done %>
-        <div style="width:4px;height:4px;border-radius:50%;background:#fbbf24;animation:pulse 1.5s ease infinite"></div>
-      <% end %>
+    <div style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:3px 8px;border-radius:6px;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.18);width:fit-content">
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:rgba(167,139,250,0.25);font-size:9px;font-weight:700;color:#e9d5ff"><%= assigned_agent.name.first.to_s.upcase %></span>
+      <span style="font-size:10px;font-weight:600;color:#c4b5fd"><%= assigned_agent.name %></span>
     </div>
   <% end %>
 

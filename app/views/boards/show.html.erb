@@ -11,6 +11,12 @@
   <%# Board modals (new board, settings) %>
   <%= render "boards/header" %>
 
+  <%# Columns management modal %>
+  <%= render "columns/manage_modal" %>
+
+  <%# Toast container (used for transient errors like delete column with tasks) %>
+  <div id="toast-container" class="fixed top-4 right-4 z-[200] flex flex-col gap-2"></div>
+
   <%# Tag filter indicator %>
   <% if @current_tag.present? %>
     <div class="flex items-center gap-2 px-6 py-2 bg-bg-surface border-b border-border">
@@ -28,10 +34,25 @@
 
   <%# Kanban Columns - scrollable page, variable height columns %>
   <div class="flex-1 overflow-auto bg-bg-base">
-    <div class="flex gap-2.5 items-start min-h-full" style="padding:12px 16px 16px">
-      <% Task.statuses.keys.each do |status| %>
-        <%= render "boards/column", status: status, tasks: @columns[status.to_sym] %>
+    <div id="board-columns"
+         class="flex gap-2.5 items-start min-h-full"
+         style="padding:12px 16px 16px"
+         data-controller="columns"
+         data-columns-reorder-url-value="<%= reorder_board_columns_path(@board) %>">
+      <% @board.columns.ordered.each do |column| %>
+        <%= render "boards/column", column: column, tasks: (@columns_by_id || {})[column.id] || column.tasks.order(:position) %>
       <% end %>
+
+      <%# Add column button %>
+      <div class="flex-shrink-0" style="width:240px">
+        <button type="button"
+                data-action="click->columns#openManageModal"
+                class="w-full flex items-center justify-center gap-1.5 rounded-lg cursor-pointer border border-dashed border-white/[0.08] bg-transparent hover:bg-white/[0.02] transition-colors"
+                style="padding:10px 12px;font-size:12px;font-weight:500;color:#555">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M14 8H2M8 2V14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Add column
+        </button>
+      </div>
     </div>
   </div>
 
@@ -41,5 +62,8 @@
 
   <%# New Task Modal %>
   <%= turbo_frame_tag "new_task_modal" %>
+
+  <%# Column form modal (new/edit) - loaded via Turbo Frame %>
+  <%= turbo_frame_tag "column_form_modal" %>
 
 </div>

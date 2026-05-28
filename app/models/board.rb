@@ -1,5 +1,6 @@
 class Board < ApplicationRecord
   belongs_to :user
+  has_many :columns, -> { order(position: :asc) }, dependent: :destroy
   has_many :tasks, dependent: :destroy
 
   validates :name, presence: true
@@ -16,54 +17,73 @@ class Board < ApplicationRecord
   # Available board icons (emojis)
   DEFAULT_ICONS = %w[📋 📝 🎯 🚀 💡 🔧 📊 🎨 📚 🏠 💼 🎮 🎵 📸 ✨ 🦞].freeze
 
+  # Names + positions for the default columns created on every new board.
+  # Order matters: position is the array index.
+  DEFAULT_COLUMN_NAMES = %w[Inbox Up\ Next In\ Progress In\ Review Done].freeze
+
+  # Idempotently creates the 5 default columns on this board.
+  # Safe to call multiple times (used in onboarding + migration backfill).
+  def default_columns!
+    DEFAULT_COLUMN_NAMES.each_with_index do |name, idx|
+      columns.find_or_create_by!(name: name) do |col|
+        col.position = idx
+      end
+    end
+    columns.reload
+  end
+
   def self.create_onboarding_for(user)
     board = user.boards.create!(
       name: "Getting Started",
       icon: "🚀",
       color: "blue"
     )
+    board.default_columns!
+
+    inbox = board.columns.find_by!(name: "Inbox")
+    up_next = board.columns.find_by!(name: "Up Next")
 
     tasks = [
       {
         name: "👋 Welcome to ClawDeck!",
         description: "Your mission control for AI agents. Drag tasks between columns, and your agent picks up what you assign. Think of it as a shared kanban with your AI coworker.",
-        status: "up_next",
+        column: up_next,
         position: 0
       },
       {
         name: "🔗 Connect your agent",
         description: "Go to Settings → copy the integration prompt → paste it into your agent's config. Once connected, you'll see your agent appear in the header.",
-        status: "inbox",
+        column: inbox,
         position: 0
       },
       {
         name: "✅ Assign your first task",
         description: "Create a task, then right-click → \"Assign to Agent\". Your agent will pick it up and start working. Watch the activity feed for updates!",
-        status: "inbox",
+        column: inbox,
         position: 1
       },
       {
         name: "💡 Example: Research task",
         description: "\"Research the top 5 competitors to [product] and summarize their pricing models.\" — Great for agents with web access.",
-        status: "inbox",
+        column: inbox,
         position: 2
       },
       {
         name: "💡 Example: Code task",
         description: "\"Add a dark mode toggle to the settings page. Use Tailwind classes.\" — Perfect for coding agents.",
-        status: "inbox",
+        column: inbox,
         position: 3
       },
       {
         name: "💡 Example: Writing task",
         description: "\"Draft a welcome email for new users. Keep it short, friendly, 3 paragraphs max.\" — Works with any agent.",
-        status: "inbox",
+        column: inbox,
         position: 4
       },
       {
         name: "🎯 Try it yourself!",
         description: "Delete these cards and create your first real task. Be specific — your agent works best with clear instructions.",
-        status: "up_next",
+        column: up_next,
         position: 1
       }
     ]

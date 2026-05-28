@@ -1,7 +1,7 @@
 require "digest"
 
 class ApiToken < ApplicationRecord
-  belongs_to :user
+  belongs_to :agent
 
   # raw_token is set in-memory on creation so the plaintext token can be shown
   # to the user exactly once. It is never persisted.
@@ -12,6 +12,9 @@ class ApiToken < ApplicationRecord
 
   before_validation :generate_token, on: :create
 
+  # Convenience accessor — most callers still want the user behind the token.
+  delegate :user, to: :agent
+
   def self.authenticate(token)
     return nil if token.blank?
 
@@ -20,7 +23,7 @@ class ApiToken < ApplicationRecord
     return nil unless api_token
 
     api_token.touch(:last_used_at)
-    api_token.user
+    api_token.agent
   end
 
   private

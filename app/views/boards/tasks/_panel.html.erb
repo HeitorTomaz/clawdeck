@@ -1,19 +1,5 @@
 <%# Task edit slide-in panel for kanban board %>
 <%
-  status_labels = {
-    "inbox" => "Inbox",
-    "up_next" => "Up Next",
-    "in_progress" => "In Progress",
-    "in_review" => "In Review",
-    "done" => "Done"
-  }
-  status_dot_colors = {
-    "inbox" => "#666",
-    "up_next" => "#60a5fa",
-    "in_progress" => "#fbbf24",
-    "in_review" => "#a78bfa",
-    "done" => "#34d399"
-  }
   priority_levels = [
     { id: "none", dots: 1, color: "#555" },
     { id: "low", dots: 2, color: "#60a5fa" },
@@ -21,13 +7,20 @@
     { id: "high", dots: 4, color: "#ef4444" },
   ]
   board_color_hex = board_hex_color(@board)
+
+  # Build a stable color per column based on its position
+  column_palette = ["#666", "#60a5fa", "#fbbf24", "#a78bfa", "#34d399", "#f472b6", "#22d3ee", "#facc15"]
+  current_column = task.column
+  current_column_color = current_column ? column_palette[current_column.position.to_i % column_palette.length] : "#666"
+
+  available_columns = @board.columns.ordered
+  available_agents  = (defined?(current_user) && current_user.respond_to?(:agents)) ? current_user.agents.order(:name) : []
+  assigned_agent    = task.assigned_agent
 %>
 
 <div data-controller="task-modal"
      data-task-modal-task-id-value="<%= task.id %>"
-     data-task-modal-update-url-value="<%= board_task_path(@board, task) %>"
-     data-task-modal-assign-url-value="<%= assign_board_task_path(@board, task) %>"
-     data-task-modal-unassign-url-value="<%= unassign_board_task_path(@board, task) %>">
+     data-task-modal-update-url-value="<%= board_task_path(@board, task) %>">
   <!-- Backdrop -->
   <div data-task-modal-target="backdrop"
        data-action="click->task-modal#close"
@@ -39,10 +32,10 @@
        class="hidden translate-x-full transition-transform duration-200 ease-out"
        style="position:fixed;top:0;right:0;width:400px;height:100vh;background:#1a1a1e;border-left:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;z-index:201;overflow:hidden">
 
-    <!-- Header — status pill + close -->
+    <!-- Header — column pill + close -->
     <div style="padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:space-between">
       <div data-task-modal-target="statusPill" style="font-size:11px;font-weight:700;color:#ccc;background:rgba(255,255,255,0.06);padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.08)">
-        <%= status_labels[task.status] %>
+        <%= current_column&.name || "—" %>
       </div>
       <button type="button"
               data-action="click->task-modal#close"
@@ -76,36 +69,35 @@
         <%= form.submit "Save", class: "hidden", data: { task_modal_target: "submitButton" } %>
       <% end %>
 
-      <%# === Details section: status, priority, agent — outside form === %>
+      <%# === Details section: column, priority, agent — outside form === %>
       <div>
         <div style="font-size:13px;font-weight:700;color:#e0e0e0;margin-bottom:14px">Details</div>
 
-        <!-- Status row -->
+        <!-- Column row -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px" data-controller="dropdown">
-          <span style="font-size:12px;font-weight:500;color:#888">Status</span>
+          <span style="font-size:12px;font-weight:500;color:#888">Column</span>
           <div style="position:relative">
             <button type="button" data-action="click->dropdown#toggle" data-dropdown-target="button" aria-expanded="false"
                     style="display:flex;align-items:center;gap:7px;padding:5px 12px;border-radius:8px;cursor:pointer;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);transition:all 0.12s">
-              <div data-task-modal-target="statusDot" style="width:6px;height:6px;border-radius:50%;background:<%= status_dot_colors[task.status] %>"></div>
-              <span data-task-modal-target="statusLabel" style="font-size:12px;font-weight:600;color:#ccc"><%= status_labels[task.status] %></span>
+              <div data-task-modal-target="statusDot" style="width:6px;height:6px;border-radius:50%;background:<%= current_column_color %>"></div>
+              <span data-task-modal-target="statusLabel" style="font-size:12px;font-weight:600;color:#ccc"><%= current_column&.name || "—" %></span>
               <svg width="10" height="10" viewBox="0 0 16 16" fill="none" style="opacity:0.3">
                 <path d="M4 6L8 10L12 6" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </button>
-            <div data-dropdown-target="menu" class="hidden" style="position:absolute;top:calc(100% + 4px);right:0;width:180px;padding:4px;border-radius:10px;background:#222226;border:1px solid rgba(255,255,255,0.08);box-shadow:0 12px 40px rgba(0,0,0,0.5);z-index:10;animation:dropIn 0.12s ease both">
-              <% status_labels.each do |status_key, status_label| %>
+            <div data-dropdown-target="menu" class="hidden" style="position:absolute;top:calc(100% + 4px);right:0;width:200px;padding:4px;border-radius:10px;background:#222226;border:1px solid rgba(255,255,255,0.08);box-shadow:0 12px 40px rgba(0,0,0,0.5);z-index:10">
+              <% available_columns.each_with_index do |col, idx| %>
+                <% col_color = column_palette[col.position.to_i % column_palette.length] %>
                 <button type="button"
-                        data-action="click->task-modal#changeStatus"
-                        data-status="<%= status_key %>"
-                        data-status-label="<%= status_label %>"
-                        data-status-dot="<%= status_dot_colors[status_key] %>"
-                        style="display:flex;align-items:center;gap:9px;width:100%;padding:8px 10px;border-radius:7px;background:<%= task.status == status_key ? 'rgba(255,255,255,0.06)' : 'transparent' %>;border:none;cursor:pointer;transition:background 0.1s;text-align:left"
-                        onmouseenter="if(!this.dataset.active)this.style.background='rgba(255,255,255,0.04)'"
-                        onmouseleave="if(!this.dataset.active)this.style.background='transparent'">
-                  <div style="width:7px;height:7px;border-radius:50%;background:<%= status_dot_colors[status_key] %>"></div>
-                  <span style="font-size:12px;font-weight:600;color:<%= task.status == status_key ? '#e0e0e0' : '#888' %>;flex:1"><%= status_label %></span>
-                  <% if task.status == status_key %>
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="<%= status_dot_colors[status_key] %>" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        data-action="click->task-modal#changeColumn"
+                        data-column-id="<%= col.id %>"
+                        data-column-label="<%= col.name %>"
+                        data-column-dot="<%= col_color %>"
+                        style="display:flex;align-items:center;gap:9px;width:100%;padding:8px 10px;border-radius:7px;background:<%= task.column_id == col.id ? 'rgba(255,255,255,0.06)' : 'transparent' %>;border:none;cursor:pointer;transition:background 0.1s;text-align:left">
+                  <div style="width:7px;height:7px;border-radius:50%;background:<%= col_color %>"></div>
+                  <span style="font-size:12px;font-weight:600;color:<%= task.column_id == col.id ? '#e0e0e0' : '#888' %>;flex:1"><%= col.name %></span>
+                  <% if task.column_id == col.id %>
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="<%= col_color %>" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                   <% end %>
                 </button>
               <% end %>
@@ -115,12 +107,11 @@
 
         <!-- Priority row -->
         <%
-          priority_cycle = %w[none low medium high]
           priority_config = {
             "none"   => { dots: 0, color: "#555",    bg: "rgba(255,255,255,0.03)",  border: "rgba(255,255,255,0.06)" },
-            "low"    => { dots: 1, color: "#60a5fa",  bg: "rgba(96,165,250,0.10)",   border: "rgba(96,165,250,0.25)" },
-            "medium" => { dots: 2, color: "#fbbf24",  bg: "rgba(251,191,36,0.10)",   border: "rgba(251,191,36,0.25)" },
-            "high"   => { dots: 3, color: "#ef4444",  bg: "rgba(239,68,68,0.10)",    border: "rgba(239,68,68,0.25)" },
+            "low"    => { dots: 1, color: "#60a5fa", bg: "rgba(96,165,250,0.10)",   border: "rgba(96,165,250,0.25)" },
+            "medium" => { dots: 2, color: "#fbbf24", bg: "rgba(251,191,36,0.10)",   border: "rgba(251,191,36,0.25)" },
+            "high"   => { dots: 3, color: "#ef4444", bg: "rgba(239,68,68,0.10)",    border: "rgba(239,68,68,0.25)" },
           }
           current_p = priority_config[task.priority] || priority_config["none"]
         %>
@@ -142,49 +133,51 @@
         </div>
 
         <!-- Agent row -->
-        <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;justify-content:space-between" data-controller="dropdown">
           <span style="font-size:12px;font-weight:500;color:#888">Agent</span>
-          <% if task.assigned_to_agent? %>
-            <button type="button"
-                    data-action="click->task-modal#toggleAgent"
-                    style="width:100px;height:30px;display:flex;align-items:center;justify-content:center;gap:5px;border-radius:7px;cursor:pointer;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.2);transition:all 0.12s">
-              <span style="font-size:11px">🤖</span>
-              <span style="font-size:11px;font-weight:600;color:#fbbf24">Assigned</span>
+          <div style="position:relative">
+            <button type="button" data-action="click->dropdown#toggle" data-dropdown-target="button" aria-expanded="false"
+                    style="display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:8px;cursor:pointer;background:<%= assigned_agent ? 'rgba(167,139,250,0.10)' : 'rgba(255,255,255,0.04)' %>;border:1px solid <%= assigned_agent ? 'rgba(167,139,250,0.25)' : 'rgba(255,255,255,0.06)' %>;transition:all 0.12s">
+              <% if assigned_agent %>
+                <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:rgba(167,139,250,0.25);font-size:9px;font-weight:700;color:#e9d5ff"><%= assigned_agent.name.first.to_s.upcase %></span>
+                <span style="font-size:11px;font-weight:600;color:#c4b5fd"><%= assigned_agent.name %></span>
+              <% else %>
+                <span style="font-size:11px">🤖</span>
+                <span style="font-size:11px;font-weight:600;color:#555">Assign</span>
+              <% end %>
             </button>
-          <% else %>
-            <% agent_connected = current_user.agent_last_active_at.present? %>
-            <% if agent_connected %>
-              <button type="button"
-                      data-action="click->task-modal#toggleAgent"
-                      style="width:100px;height:30px;display:flex;align-items:center;justify-content:center;gap:5px;border-radius:7px;cursor:pointer;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);transition:all 0.12s">
-                <span style="font-size:11px">🤖</span>
-                <span style="font-size:11px;font-weight:600;color:#555">Assign</span>
-              </button>
-            <% else %>
-              <span style="width:100px;height:30px;display:flex;align-items:center;justify-content:center;gap:5px;border-radius:7px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);cursor:not-allowed">
-                <span style="font-size:11px">🤖</span>
-                <span style="font-size:11px;font-weight:600;color:#555">Assign</span>
-              </span>
-            <% end %>
-          <% end %>
-        </div>
-      </div>
-
-      <!-- Agent Status Banner -->
-      <% if task.assigned_to_agent? && task.agent_claimed_at.present? %>
-        <% agent_done = task.status == "done" || task.status == "in_review" %>
-        <div style="padding:12px 14px;border-radius:10px;background:<%= agent_done ? 'rgba(52,211,153,0.05)' : 'rgba(251,191,36,0.05)' %>;border:1px solid <%= agent_done ? 'rgba(52,211,153,0.10)' : 'rgba(251,191,36,0.10)' %>;display:flex;align-items:center;gap:9px">
-          <span style="font-size:16px">🤖</span>
-          <div>
-            <div style="font-size:12px;font-weight:600;color:<%= agent_done ? '#34d399' : '#fbbf24' %>">
-              <%= agent_done ? 'Agent finished — needs review' : 'Agent is working on this' %>
-            </div>
-            <div style="font-size:11px;font-weight:500;color:#444;margin-top:2px">
-              <%= agent_done ? 'Review changes before moving to Done' : 'Check back soon for updates' %>
+            <div data-dropdown-target="menu" class="hidden" style="position:absolute;top:calc(100% + 4px);right:0;width:200px;padding:4px;border-radius:10px;background:#222226;border:1px solid rgba(255,255,255,0.08);box-shadow:0 12px 40px rgba(0,0,0,0.5);z-index:10">
+              <% if available_agents.empty? %>
+                <div style="padding:8px 10px;font-size:11px;color:#666">No agents yet. <a href="<%= new_agent_path %>" style="color:#a78bfa;text-decoration:underline">Create one</a>.</div>
+              <% else %>
+                <% available_agents.each do |agent| %>
+                  <button type="button"
+                          data-action="click->task-modal#changeAgent"
+                          data-agent-id="<%= agent.id %>"
+                          data-agent-name="<%= agent.name %>"
+                          style="display:flex;align-items:center;gap:9px;width:100%;padding:8px 10px;border-radius:7px;background:<%= assigned_agent&.id == agent.id ? 'rgba(255,255,255,0.06)' : 'transparent' %>;border:none;cursor:pointer;text-align:left">
+                    <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(167,139,250,0.25);font-size:10px;font-weight:700;color:#e9d5ff"><%= agent.name.first.to_s.upcase %></span>
+                    <span style="font-size:12px;font-weight:600;color:<%= assigned_agent&.id == agent.id ? '#e0e0e0' : '#888' %>;flex:1"><%= agent.name %></span>
+                    <% if assigned_agent&.id == agent.id %>
+                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <% end %>
+                  </button>
+                <% end %>
+                <% if assigned_agent %>
+                  <div style="height:1px;background:rgba(255,255,255,0.06);margin:4px 0"></div>
+                  <button type="button"
+                          data-action="click->task-modal#changeAgent"
+                          data-agent-id=""
+                          data-agent-name=""
+                          style="display:block;width:100%;padding:8px 10px;border-radius:7px;background:transparent;border:none;cursor:pointer;text-align:left;font-size:12px;font-weight:600;color:#777">
+                    Unassign
+                  </button>
+                <% end %>
+              <% end %>
             </div>
           </div>
         </div>
-      <% end %>
+      </div>
 
       <!-- Subtasks -->
       <% subtasks = task.subtasks %>
@@ -221,7 +214,7 @@
       <% end %>
 
       <!-- Agent Suggestion Hint -->
-      <% if task.agent_hint.present? %>
+      <% if task.respond_to?(:agent_hint) && task.agent_hint.present? %>
         <div style="padding:12px 14px;border-radius:10px;background:rgba(251,191,36,0.04);border:1px solid rgba(251,191,36,0.08);display:flex;align-items:flex-start;gap:9px">
           <span style="font-size:14px;margin-top:1px">💡</span>
           <div>

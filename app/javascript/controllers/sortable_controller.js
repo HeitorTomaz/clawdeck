@@ -6,7 +6,7 @@ import Sortable from "sortablejs"
 export default class extends Controller {
   static values = {
     group: String,
-    status: String,
+    columnId: String,
     url: String
   }
 
@@ -62,7 +62,7 @@ export default class extends Controller {
   // Handle visual feedback during drag
   handleChange(event) {
     // Add column highlight to the column being dragged over
-    const targetColumn = event.to.closest('[data-status]')
+    const targetColumn = event.to.closest('[data-column-id]')
     if (targetColumn) {
       // Remove highlight from all columns first
       document.querySelectorAll('.column-drag-over').forEach(el => {
@@ -96,7 +96,7 @@ export default class extends Controller {
           "Content-Type": "application/json",
           "X-CSRF-Token": this.csrfToken
         },
-        body: JSON.stringify({ task_ids: taskIds, status: this.statusValue })
+        body: JSON.stringify({ task_ids: taskIds, column_id: this.columnIdValue })
       })
 
       if (!response.ok) {
@@ -109,22 +109,22 @@ export default class extends Controller {
 
   // Handle task added from another column (board mode)
   async handleAdd(event) {
-    if (!this.hasUrlValue || !this.hasStatusValue) return
+    if (!this.hasUrlValue || !this.hasColumnIdValue) return
 
     const taskId = event.item.dataset.taskId
-    const newStatus = this.statusValue
-    const oldStatus = event.from.id.replace("column-", "")
+    const newColumnId = this.columnIdValue
+    const oldColumnId = event.from.id.replace("column-", "")
 
     // Get all task IDs in their new order (including the newly added one)
     const taskIds = Array.from(this.element.querySelectorAll("[data-task-id]"))
       .map(el => el.dataset.taskId)
 
     // Update the task's data attributes
-    event.item.dataset.taskStatus = newStatus
+    event.item.dataset.taskColumnId = newColumnId
 
     // Update column counters
-    this.updateColumnCount(oldStatus, -1)
-    this.updateColumnCount(newStatus, 1)
+    this.updateColumnCount(oldColumnId, -1)
+    this.updateColumnCount(newColumnId, 1)
 
     try {
       const response = await fetch(this.urlValue, {
@@ -133,14 +133,14 @@ export default class extends Controller {
           "Content-Type": "application/json",
           "X-CSRF-Token": this.csrfToken
         },
-        body: JSON.stringify({ task_id: taskId, status: newStatus, task_ids: taskIds })
+        body: JSON.stringify({ task_id: taskId, column_id: newColumnId, task_ids: taskIds })
       })
 
       if (!response.ok) {
-        console.error("Failed to update task status")
+        console.error("Failed to update task column")
       }
     } catch (error) {
-      console.error("Error updating task status:", error)
+      console.error("Error updating task column:", error)
     }
   }
 
@@ -148,18 +148,11 @@ export default class extends Controller {
     return document.querySelector("[name='csrf-token']").content
   }
 
-  updateColumnCount(status, delta) {
-    // Update column header count
-    const countEl = document.getElementById(`column-${status}-count`)
+  updateColumnCount(columnId, delta) {
+    const countEl = document.getElementById(`column-${columnId}-count`)
     if (countEl) {
       const currentCount = parseInt(countEl.textContent, 10) || 0
       countEl.textContent = currentCount + delta
-    }
-    // Update header stats count
-    const headerCountEl = document.getElementById(`header-${status}-count`)
-    if (headerCountEl) {
-      const currentCount = parseInt(headerCountEl.textContent, 10) || 0
-      headerCountEl.textContent = currentCount + delta
     }
   }
 }

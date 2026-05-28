@@ -1,0 +1,12 @@
+<% content_for :title, "New agent" %>
+
+<div class="space-y-6 mt-12 max-w-md mx-auto px-4">
+  <div>
+    <h2 class="text-lg font-semibold text-content font-display">New agent</h2>
+    <p class="text-xs text-content-muted mt-1">Agents are how external automations connect to ClawDeck. Each has its own API tokens.</p>
+  </div>
+
+  <div class="bg-bg-surface border border-border rounded-lg p-5">
+    <%= render "agents/form", agent: @agent, submit_label: "Create agent", url: agents_path, method: :post %>
+  </div>
+</div>

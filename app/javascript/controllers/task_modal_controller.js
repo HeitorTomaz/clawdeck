@@ -3,12 +3,11 @@ import { Controller } from "@hotwired/stimulus"
 // Connects to data-controller="task-modal"
 export default class extends Controller {
   static targets = ["modal", "backdrop", "form", "nameField", "descriptionField", "submitButton", "priorityField", "priorityButton", "statusPill", "statusDot", "statusLabel"]
-  static values = { taskId: Number, updateUrl: String, assignUrl: String, unassignUrl: String }
+  static values = { taskId: Number, updateUrl: String }
 
   connect() {
     this.boundHandleKeydown = this.handleKeydown.bind(this)
     this.autoSaveTimeout = null
-    this.isAssigned = this.element.querySelector('[data-action="click->task-modal#toggleAgent"]')?.textContent?.includes('Assigned') || false
 
     // Auto-open the modal when it's loaded
     setTimeout(() => {
@@ -152,27 +151,25 @@ export default class extends Controller {
     this.save()
   }
 
-  // --- Status (fetch-based, no form submission) ---
+  // --- Column (fetch-based, no form submission) ---
 
-  changeStatus(event) {
+  changeColumn(event) {
     const btn = event.currentTarget
-    const newStatus = btn.dataset.status
-    const label = btn.dataset.statusLabel
-    const dotColor = btn.dataset.statusDot
+    const newColumnId = btn.dataset.columnId
+    const label = btn.dataset.columnLabel
+    const dotColor = btn.dataset.columnDot
 
-    // Optimistic UI: update the status trigger button and header pill
+    // Optimistic UI
     if (this.hasStatusLabelTarget) this.statusLabelTarget.textContent = label
     if (this.hasStatusDotTarget) this.statusDotTarget.style.background = dotColor
     if (this.hasStatusPillTarget) this.statusPillTarget.textContent = label
 
-    // Close the dropdown
     const dropdownMenu = btn.closest('[data-dropdown-target="menu"]')
     if (dropdownMenu) dropdownMenu.classList.add('hidden')
 
-    // Send PATCH via fetch
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
     const formData = new FormData()
-    formData.append('task[status]', newStatus)
+    formData.append('task[column_id]', newColumnId)
 
     fetch(this.updateUrlValue, {
       method: 'PATCH',
@@ -184,21 +181,26 @@ export default class extends Controller {
     }).then(response => {
       if (response.ok) return response.text()
     }).then(html => {
-      if (html) {
-        // Apply turbo stream updates immediately (card move between columns)
-        Turbo.renderStreamMessage(html)
-      }
+      if (html) Turbo.renderStreamMessage(html)
     })
   }
 
-  // --- Agent toggle (fetch-based) ---
+  // --- Agent (fetch-based, no form submission) ---
 
-  toggleAgent() {
-    const url = this.isAssigned ? this.unassignUrlValue : this.assignUrlValue
+  changeAgent(event) {
+    const btn = event.currentTarget
+    const agentId = btn.dataset.agentId || ""
+
+    const dropdownMenu = btn.closest('[data-dropdown-target="menu"]')
+    if (dropdownMenu) dropdownMenu.classList.add('hidden')
+
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
+    const formData = new FormData()
+    formData.append('task[assigned_agent_id]', agentId)
 
-    fetch(url, {
+    fetch(this.updateUrlValue, {
       method: 'PATCH',
+      body: formData,
       headers: {
         'Accept': 'text/vnd.turbo-stream.html',
         'X-CSRF-Token': csrfToken
@@ -206,19 +208,11 @@ export default class extends Controller {
     }).then(response => {
       if (response.ok) return response.text()
     }).then(html => {
-      if (html) {
-        Turbo.renderStreamMessage(html)
-      }
-      // Reload the panel to reflect the new agent state
-      this.isAssigned = !this.isAssigned
-      // Re-fetch the panel content
-      const taskPanelFrame = document.getElementById('task_panel')
-      if (taskPanelFrame) {
-        taskPanelFrame.src = taskPanelFrame.src || window.location.href
-        // Visit the task show URL to reload panel
-        const taskLink = document.querySelector(`[data-task-id="${this.taskIdValue}"] a[data-turbo-frame="task_panel"]`)
-        if (taskLink) taskLink.click()
-      }
+      if (html) Turbo.renderStreamMessage(html)
+
+      // Reload panel so the agent chip + dropdown selection reflect the change
+      const taskLink = document.querySelector(`[data-task-id="${this.taskIdValue}"] a[data-turbo-frame="task_panel"]`)
+      if (taskLink) taskLink.click()
     })
   }
 

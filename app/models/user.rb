@@ -4,12 +4,20 @@ class User < ApplicationRecord
   has_many :sessions, dependent: :destroy
   has_many :boards, dependent: :destroy
   has_many :tasks, dependent: :destroy
-  has_many :api_tokens, dependent: :destroy
+  has_many :agents, dependent: :destroy
+  has_many :api_tokens, through: :agents
   has_one_attached :avatar
 
-  # Primary API token for agent integration
+  # Returns (creating if needed) the user's default Agent.
+  def primary_agent
+    agents.first || agents.create!(name: "Primary")
+  end
+
+  # Primary API token for agent integration. Always lives under the user's
+  # primary Agent (we no longer attach tokens directly to users).
   def api_token
-    api_tokens.first || api_tokens.create!(name: "Default")
+    agent = primary_agent
+    agent.api_tokens.first || agent.api_tokens.create!(name: "Default")
   end
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }

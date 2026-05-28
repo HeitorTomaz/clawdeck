@@ -1,0 +1,9 @@
+one_default:
+  user: one
+  name: Test Board One
+  position: 1
+
+two_default:
+  user: two
+  name: Test Board Two
+  position: 1

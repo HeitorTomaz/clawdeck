@@ -48,7 +48,26 @@
           <h3 class="text-sm font-semibold text-content mb-4 font-display">Details</h3>
 
           <div class="space-y-4">
-<%= form.hidden_field :status, value: "inbox" %>
+            <!-- Column -->
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-content-muted">Column</span>
+              <%= form.select :column_id,
+                  @board.columns.ordered.map { |c| [c.name, c.id] },
+                  { selected: (@task.column_id || @board.columns.ordered.first&.id) },
+                  class: "px-2 py-1.5 text-xs rounded-md bg-bg-elevated border border-white/[0.06] text-content-secondary focus:outline-none focus:ring-1 focus:ring-accent" %>
+            </div>
+
+            <!-- Agent (optional) -->
+            <% available_agents = current_user.respond_to?(:agents) ? current_user.agents.order(:name) : [] %>
+            <% if available_agents.any? %>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-content-muted">Agent</span>
+                <%= form.select :assigned_agent_id,
+                    available_agents.map { |a| [a.name, a.id] },
+                    { include_blank: "— None —", selected: @task.assigned_agent_id },
+                    class: "px-2 py-1.5 text-xs rounded-md bg-bg-elevated border border-white/[0.06] text-content-secondary focus:outline-none focus:ring-1 focus:ring-accent" %>
+              </div>
+            <% end %>
 
             <!-- Priority -->
             <div class="flex items-center justify-between">

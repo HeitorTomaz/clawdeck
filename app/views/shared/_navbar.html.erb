@@ -140,6 +140,20 @@
         </div>
       <% end %>
 
+      <%# Manage columns button (only on board pages) %>
+      <% if @board %>
+        <button type="button"
+                onclick="document.getElementById('manage-columns-modal').classList.remove('hidden')"
+                class="cursor-pointer flex items-center gap-[5px]"
+                style="font-size:12px;font-weight:600;color:#888;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);padding:5px 12px;border-radius:8px"
+                title="Manage columns">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;opacity:0.6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6h16.5M3.75 12h16.5m-16.5 6h16.5" />
+          </svg>
+          Columns
+        </button>
+      <% end %>
+
       <%# Board settings button (only on board pages) %>
       <% if @board %>
         <button type="button"

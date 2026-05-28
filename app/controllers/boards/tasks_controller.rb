@@ -3,7 +3,7 @@ class Boards::TasksController < ApplicationController
   before_action :set_task, only: [:show, :edit, :update, :destroy, :assign, :unassign]
 
   def show
-    @api_token = current_user.api_token
+    @agents = current_user.agents
     render layout: false
   end
 
@@ -15,7 +15,9 @@ class Boards::TasksController < ApplicationController
   def create
     @task = @board.tasks.new(task_params)
     @task.user = current_user
-    @task.status ||= :inbox
+    # Default the task into the board's first column if the caller didn't
+    # pick one explicitly.
+    @task.column ||= @board.columns.first
     @task.activity_source = "web"
 
     if @task.save
@@ -48,7 +50,7 @@ class Boards::TasksController < ApplicationController
   end
 
   def destroy
-    @status = @task.status
+    @column_id = @task.column_id
     @task.activity_source = "web"
     @task.destroy
     respond_to do |format|
@@ -96,9 +98,16 @@ class Boards::TasksController < ApplicationController
   end
 
   def task_params
-    permitted = params.require(:task).permit(:name, :title, :description, :priority, :status, :blocked, :due_date, :completed, :agent_hint, tags: [])
+    permitted = params.require(:task).permit(:name, :title, :description, :priority, :column_id, :assigned_agent_id, :blocked, :due_date, :completed, :agent_hint, tags: [])
     # Allow 'title' as alias for 'name'
     permitted[:name] = permitted.delete(:title) if permitted[:title].present? && permitted[:name].blank?
+    # Scope column_id and assigned_agent_id to the current board / user.
+    if permitted[:column_id].present? && !@board.columns.exists?(id: permitted[:column_id])
+      permitted.delete(:column_id)
+    end
+    if permitted[:assigned_agent_id].present? && !current_user.agents.exists?(id: permitted[:assigned_agent_id])
+      permitted.delete(:assigned_agent_id)
+    end
     permitted
   end
 end

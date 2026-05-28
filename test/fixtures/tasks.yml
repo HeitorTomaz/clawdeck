@@ -3,13 +3,15 @@
 one:
   name: Test Task One
   user: one
-  status: inbox
+  board: one_default
+  column: one_inbox
   priority: none
   completed: false
 
 two:
   name: Test Task Two
   user: two
-  status: in_progress
+  board: two_default
+  column: two_in_progress
   priority: high
   completed: false

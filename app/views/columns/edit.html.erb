@@ -1,0 +1,4 @@
+<%= turbo_frame_tag "column_form_modal" do %>
+  <%= render "columns/form_modal", column: @column, title: "Edit column", submit_label: "Save changes",
+      url: board_column_path(@board, @column), method: :patch %>
+<% end %>

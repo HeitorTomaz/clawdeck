@@ -1,0 +1,35 @@
+<%= form_with model: agent, url: url, method: method, class: "space-y-4" do |form| %>
+  <% if agent.errors.any? %>
+    <div class="p-3 bg-status-error/20 text-status-error text-xs rounded-md">
+      <ul class="list-disc list-inside">
+        <% agent.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <label class="block text-xs font-medium text-content-secondary mb-1.5">Name</label>
+    <%= form.text_field :name,
+        required: true,
+        autofocus: true,
+        placeholder: "e.g., Research bot, QA agent",
+        class: "w-full px-3 py-2 text-sm bg-bg-card border border-white/[0.08] rounded-lg focus:outline-none focus:ring-2 focus:ring-accent text-content placeholder-content-muted" %>
+  </div>
+
+  <div>
+    <label class="block text-xs font-medium text-content-secondary mb-1.5">Description (optional)</label>
+    <%= form.text_area :description,
+        rows: 3,
+        placeholder: "What does this agent do?",
+        class: "w-full px-3 py-2 text-sm bg-bg-card border border-white/[0.08] rounded-lg focus:outline-none focus:ring-2 focus:ring-accent text-content placeholder-content-muted" %>
+  </div>
+
+  <div class="flex items-center justify-end gap-3 pt-2">
+    <%= link_to "Cancel", agents_path,
+        class: "px-3 py-1.5 text-xs font-semibold rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-content-secondary transition-colors cursor-pointer" %>
+    <%= form.submit submit_label,
+        class: "px-3 py-1.5 text-xs font-semibold rounded-lg bg-accent text-content hover:bg-accent-hover transition-colors cursor-pointer" %>
+  </div>
+<% end %>

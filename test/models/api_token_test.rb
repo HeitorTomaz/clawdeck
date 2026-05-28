@@ -8,8 +8,8 @@ class ApiTokenTest < ActiveSupport::TestCase
   }.freeze
 
   test "generates token digest on create and exposes raw_token in memory" do
-    user = users(:one)
-    api_token = user.api_tokens.create!(name: "New Token")
+    agent = agents(:one_primary)
+    api_token = agent.api_tokens.create!(name: "New Token")
 
     assert api_token.raw_token.present?
     assert_equal 64, api_token.raw_token.length # 32 bytes hex = 64 chars
@@ -18,8 +18,8 @@ class ApiTokenTest < ActiveSupport::TestCase
   end
 
   test "raw_token is not persisted" do
-    user = users(:one)
-    api_token = user.api_tokens.create!(name: "Ephemeral")
+    agent = agents(:one_primary)
+    api_token = agent.api_tokens.create!(name: "Ephemeral")
 
     reloaded = ApiToken.find(api_token.id)
     assert_nil reloaded.raw_token
@@ -28,31 +28,30 @@ class ApiTokenTest < ActiveSupport::TestCase
 
   test "token_digest must be unique" do
     existing_token = api_tokens(:one)
-    user = users(:two)
+    agent = agents(:two_primary)
 
-    new_token = user.api_tokens.new(name: "Duplicate", token_digest: existing_token.token_digest)
+    new_token = agent.api_tokens.new(name: "Duplicate", token_digest: existing_token.token_digest)
     assert_not new_token.valid?
     assert_includes new_token.errors[:token_digest], "has already been taken"
   end
 
   test "name is required" do
-    user = users(:one)
-    api_token = user.api_tokens.new(name: nil)
+    agent = agents(:one_primary)
+    api_token = agent.api_tokens.new(name: nil)
 
     assert_not api_token.valid?
     assert_includes api_token.errors[:name], "can't be blank"
   end
 
-  test "authenticate returns user for valid token" do
+  test "authenticate returns agent for valid token" do
     raw = FIXTURE_RAW_TOKENS[:one]
-    user = ApiToken.authenticate(raw)
+    agent = ApiToken.authenticate(raw)
 
-    assert_equal api_tokens(:one).user, user
+    assert_equal api_tokens(:one).agent, agent
   end
 
   test "authenticate returns nil for invalid token" do
-    user = ApiToken.authenticate("invalid_token")
-    assert_nil user
+    assert_nil ApiToken.authenticate("invalid_token")
   end
 
   test "authenticate returns nil for blank token" do
@@ -70,7 +69,12 @@ class ApiTokenTest < ActiveSupport::TestCase
     assert api_token.last_used_at.present?
   end
 
-  test "belongs to user" do
+  test "belongs to agent" do
+    api_token = api_tokens(:one)
+    assert_equal agents(:one_primary), api_token.agent
+  end
+
+  test "delegates user to agent" do
     api_token = api_tokens(:one)
     assert_equal users(:one), api_token.user
   end
