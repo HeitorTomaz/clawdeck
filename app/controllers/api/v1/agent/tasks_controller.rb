@@ -268,8 +268,6 @@ module Api
             column_id: task.column_id,
             column_name: task.column&.name,
             assigned_agent: assigned_agent ? { id: assigned_agent.id, name: assigned_agent.name } : nil,
-            assigned_at: task.assigned_at&.iso8601,
-            agent_claimed_at: task.agent_claimed_at&.iso8601,
             board_id: task.board_id,
             url: "https://clawdeck.io/boards/#{task.board_id}/tasks/#{task.id}",
             created_at: task.created_at.iso8601,
