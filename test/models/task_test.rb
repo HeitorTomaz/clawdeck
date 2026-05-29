@@ -1,6 +1,8 @@
 require "test_helper"
 
 class TaskTest < ActiveSupport::TestCase
+  include ActiveJob::TestHelper
+
   test "valid with name, user, board, column" do
     task = Task.new(
       name: "Fresh task",
@@ -135,6 +137,66 @@ class TaskTest < ActiveSupport::TestCase
 
     result = Task.filter_by({ touched_by: "moderador" }, board: board)
     assert_includes result, task
+  end
+
+  # --- Webhook callback ---
+
+  test "enqueues AgentWebhookJob when moving to a webhook-enabled column with an agent that has a cron_id" do
+    agent = agents(:one_primary)
+    agent.update!(webhook_cron_id: "abc-123")
+    target = columns(:one_in_progress)
+    target.update!(assigned_agent: agent, webhook_enabled: true)
+    task = tasks(:one)
+
+    assert_enqueued_with(job: AgentWebhookJob, args: [task.id, target.id]) do
+      task.update!(column: target)
+    end
+  end
+
+  test "does not enqueue webhook when column webhook_enabled is false" do
+    agent = agents(:one_primary)
+    agent.update!(webhook_cron_id: "abc-123")
+    target = columns(:one_in_progress)
+    target.update!(assigned_agent: agent, webhook_enabled: false)
+    task = tasks(:one)
+
+    assert_no_enqueued_jobs only: AgentWebhookJob do
+      task.update!(column: target)
+    end
+  end
+
+  test "does not enqueue webhook when target column has no assigned agent" do
+    target = columns(:one_in_progress)
+    target.update!(assigned_agent: nil, webhook_enabled: true)
+    task = tasks(:one)
+
+    assert_no_enqueued_jobs only: AgentWebhookJob do
+      task.update!(column: target)
+    end
+  end
+
+  test "does not enqueue webhook when assigned agent has no webhook_cron_id" do
+    agent = agents(:one_primary)
+    agent.update!(webhook_cron_id: nil)
+    target = columns(:one_in_progress)
+    target.update!(assigned_agent: agent, webhook_enabled: true)
+    task = tasks(:one)
+
+    assert_no_enqueued_jobs only: AgentWebhookJob do
+      task.update!(column: target)
+    end
+  end
+
+  test "does not enqueue webhook on non-column updates" do
+    agent = agents(:one_primary)
+    agent.update!(webhook_cron_id: "abc-123")
+    target = columns(:one_inbox)
+    target.update!(assigned_agent: agent, webhook_enabled: true)
+    task = tasks(:one) # already in one_inbox
+
+    assert_no_enqueued_jobs only: AgentWebhookJob do
+      task.update!(name: "renamed only")
+    end
   end
 
   test "filter_by combines dimensions with AND" do
