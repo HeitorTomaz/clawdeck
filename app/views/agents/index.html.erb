@@ -52,7 +52,7 @@
           <div class="mt-4 pt-4 border-t border-border">
             <div class="flex items-center justify-between mb-2">
               <span class="text-sm font-medium text-content-muted">API tokens</span>
-              <%= button_to "Generate token", regenerate_agent_token_path(agent),
+              <%= button_to "Generate token", regenerate_token_agent_path(agent),
                   method: :post,
                   data: { turbo_confirm: "Generate a new token for this agent? You'll only see it once." },
                   class: "px-3 py-1.5 text-sm font-medium rounded-md border border-border text-content-secondary hover:bg-bg-hover hover:text-content transition-colors cursor-pointer" %>
