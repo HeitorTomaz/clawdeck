@@ -45,3 +45,6 @@
 /.kamal/secrets
 
 tpush/
+
+# Claude Code worktrees + local state
+/.claude/

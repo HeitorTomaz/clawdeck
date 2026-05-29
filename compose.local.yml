@@ -26,6 +26,8 @@ services:
       DATABASE_URL: postgres://clawdeck:localdevonly@db:5432/clawdeck_development
       BINDING: "0.0.0.0"
       DISABLE_SPRING: "1"
+      OPENCLAW_RPC_URL: http://openclaw-local-openclaw-1:18790/api/v1/admin/rpc
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
     volumes:
       - .:/app
       - bundle_cache:/app/vendor/bundle
