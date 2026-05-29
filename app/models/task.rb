@@ -25,6 +25,9 @@ class Task < ApplicationRecord
   after_create :record_creation_activity
   after_update :record_update_activities
 
+  # Webhook dispatch when task enters an agent-assigned column flagged for webhook.
+  after_update_commit :enqueue_agent_webhook, if: :should_fire_webhook?
+
   # Position management - acts_as_list functionality without the gem
   before_create :set_position
   before_save :sync_completed_with_column
@@ -206,5 +209,15 @@ class Task < ApplicationRecord
 
   def broadcast_to_board(action:, target:, **options)
     Turbo::StreamsChannel.broadcast_action_to(board_stream_name, action: action, target: target, **options)
+  end
+
+  def should_fire_webhook?
+    saved_change_to_column_id? &&
+      column&.webhook_enabled? &&
+      column.assigned_agent&.webhook_cron_id.present?
+  end
+
+  def enqueue_agent_webhook
+    AgentWebhookJob.perform_later(id, column_id)
   end
 end
