@@ -99,7 +99,7 @@
               <div class="flex items-center gap-2">
                 <%= link_to "Edit", edit_agent_path(agent),
                     class: "px-2 py-1 text-[10px] font-semibold rounded border border-border hover:bg-bg-hover text-content-secondary transition-colors" %>
-                <%= button_to "New token", regenerate_agent_token_path(agent),
+                <%= button_to "New token", regenerate_token_agent_path(agent),
                     method: :post,
                     data: { turbo_confirm: "Generate a new token? You'll only see it once." },
                     class: "px-3 py-1.5 text-xs font-medium rounded-md border border-border text-content-secondary hover:bg-bg-hover hover:text-content transition-colors cursor-pointer" %>
