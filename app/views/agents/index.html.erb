@@ -4,35 +4,35 @@
 <div class="space-y-6 mt-12 max-w-3xl mx-auto px-4">
   <div class="flex items-center justify-between">
     <div>
-      <h2 class="text-lg font-semibold text-content font-display">Agents</h2>
-      <p class="text-xs text-content-muted mt-1">Manage the agents connected to this account. Each agent has its own API tokens.</p>
+      <h2 class="text-2xl font-semibold tracking-[-0.025em] text-content">Agents</h2>
+      <p class="text-sm text-content-muted mt-1">Manage the agents connected to this account. Each agent has its own API tokens.</p>
     </div>
     <%= link_to new_agent_path,
-        class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-accent text-content hover:bg-accent-hover text-xs font-semibold transition-colors cursor-pointer" do %>
+        class: "inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-content text-content-inverse hover:opacity-90 text-sm font-medium transition-opacity cursor-pointer btn-inset-shadow" do %>
       <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M14 8H2M8 2V14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
       New agent
     <% end %>
   </div>
 
   <% if @agents.empty? %>
-    <div class="bg-bg-surface border border-border rounded-lg p-8 text-center">
+    <div class="bg-bg-elevated border border-border rounded-xl p-8 text-center">
       <p class="text-sm text-content-muted">No agents yet. Create one to connect an OpenClaw agent to this account.</p>
     </div>
   <% else %>
     <ul class="space-y-3 list-none p-0 m-0">
       <% @agents.each do |agent| %>
-        <li id="agent-<%= agent.id %>" class="bg-bg-surface border border-border rounded-lg p-5">
+        <li id="agent-<%= agent.id %>" class="bg-bg-elevated border border-border rounded-xl p-5">
           <div class="flex items-start justify-between gap-4">
             <div class="flex items-start gap-3">
-              <div class="w-10 h-10 rounded-lg bg-purple-500/15 border border-purple-500/25 flex items-center justify-center text-sm font-bold text-purple-200">
+              <div class="w-10 h-10 rounded-full bg-[#6d4eb8]/15 border border-[#6d4eb8]/25 flex items-center justify-center text-sm font-semibold text-[#6d4eb8]">
                 <%= agent.name.first.to_s.upcase %>
               </div>
               <div>
-                <div class="text-sm font-semibold text-content"><%= agent.name %></div>
+                <div class="text-base font-medium text-content"><%= agent.name %></div>
                 <% if agent.respond_to?(:description) && agent.description.present? %>
-                  <div class="text-xs text-content-muted mt-1"><%= agent.description %></div>
+                  <div class="text-sm text-content-secondary mt-1"><%= agent.description %></div>
                 <% end %>
-                <div class="text-[11px] text-content-muted mt-2">
+                <div class="text-xs text-content-muted mt-2 font-mono">
                   <%= agent.api_tokens.count %> token(s) ·
                   <%= agent.respond_to?(:tasks_assigned) ? agent.tasks_assigned.count : 0 %> task(s) assigned
                 </div>
@@ -40,34 +40,34 @@
             </div>
             <div class="flex items-center gap-2">
               <%= link_to "Edit", edit_agent_path(agent),
-                  class: "px-2.5 py-1 text-[11px] font-semibold rounded bg-white/[0.04] hover:bg-white/[0.08] text-content-secondary transition-colors" %>
+                  class: "px-3 py-1.5 text-sm font-medium rounded-md border border-border text-content-secondary hover:bg-bg-hover hover:text-content transition-colors" %>
               <%= button_to "Delete", agent_path(agent),
                   method: :delete,
                   data: { turbo_confirm: "Delete agent \"#{agent.name}\"? Tasks assigned to it will become unassigned. Its API tokens will be revoked." },
-                  class: "px-2.5 py-1 text-[11px] font-semibold rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors cursor-pointer" %>
+                  class: "px-3 py-1.5 text-sm font-medium rounded-md text-[#b3261e] hover:bg-[rgba(179,38,30,0.06)] transition-colors cursor-pointer" %>
             </div>
           </div>
 
           <%# Tokens list %>
-          <div class="mt-4 pt-4 border-t border-white/[0.04]">
+          <div class="mt-4 pt-4 border-t border-border">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-[11px] font-semibold uppercase tracking-wider text-content-muted">API tokens</span>
+              <span class="text-sm font-medium text-content-muted">API tokens</span>
               <%= button_to "Generate token", regenerate_agent_token_path(agent),
                   method: :post,
                   data: { turbo_confirm: "Generate a new token for this agent? You'll only see it once." },
-                  class: "px-2 py-1 text-[10px] font-semibold rounded bg-white/[0.04] hover:bg-white/[0.08] text-content-secondary transition-colors cursor-pointer" %>
+                  class: "px-3 py-1.5 text-sm font-medium rounded-md border border-border text-content-secondary hover:bg-bg-hover hover:text-content transition-colors cursor-pointer" %>
             </div>
 
-            <%# If we just generated a token, show it once (raw_token only available right after creation) %>
+            <%# If we just generated a token, show it once %>
             <% if defined?(@new_raw_token) && @new_raw_token.present? && defined?(@new_raw_token_agent_id) && @new_raw_token_agent_id == agent.id %>
-              <div class="mb-3 p-3 rounded-md bg-status-success/10 border border-status-success/30" data-controller="clipboard">
-                <div class="text-[10px] font-semibold uppercase tracking-wider text-status-success mb-1.5">New token — copy now, you won't see it again</div>
+              <div class="mb-3 p-3 rounded-md bg-[#1e7a4e]/8 border border-[#1e7a4e]/30" data-controller="clipboard">
+                <div class="text-xs font-medium text-[#1e7a4e] mb-1.5">New token — copy now, you won't see it again</div>
                 <div class="flex items-center gap-2">
                   <code data-clipboard-target="source"
-                        class="flex-1 text-[11px] font-mono text-content-secondary bg-bg-elevated px-2 py-1.5 rounded break-all"><%= @new_raw_token %></code>
+                        class="flex-1 text-xs font-mono text-content bg-bg-base border border-border px-2 py-1.5 rounded break-all"><%= @new_raw_token %></code>
                   <button type="button"
                           data-action="click->clipboard#copy"
-                          class="px-2 py-1.5 text-[10px] font-semibold rounded bg-bg-elevated hover:bg-bg-hover text-content-secondary transition-colors cursor-pointer">
+                          class="px-3 py-1.5 text-xs font-medium rounded-md border border-border text-content-secondary hover:bg-bg-hover transition-colors cursor-pointer">
                     <span data-clipboard-target="label">Copy</span>
                   </button>
                 </div>
@@ -78,25 +78,25 @@
             <% if tokens.any? %>
               <ul class="space-y-1.5 list-none p-0 m-0">
                 <% tokens.each do |token| %>
-                  <li class="flex items-center justify-between gap-3 px-3 py-2 bg-bg-elevated rounded-md">
+                  <li class="flex items-center justify-between gap-3 px-3 py-2 bg-bg-base border border-border rounded-md">
                     <div class="flex items-center gap-2 min-w-0">
-                      <span class="text-[10px] font-mono text-content-muted">****<%= token.id.to_s.last(6) %></span>
-                      <span class="text-[10px] text-content-muted">·</span>
-                      <span class="text-[10px] text-content-muted">created <%= time_ago_in_words(token.created_at) %> ago</span>
+                      <span class="text-xs font-mono text-content-muted">****<%= token.id.to_s.last(6) %></span>
+                      <span class="text-xs text-content-muted">·</span>
+                      <span class="text-xs text-content-muted">created <%= time_ago_in_words(token.created_at) %> ago</span>
                       <% if token.respond_to?(:last_used_at) && token.last_used_at.present? %>
-                        <span class="text-[10px] text-content-muted">·</span>
-                        <span class="text-[10px] text-content-muted">last used <%= time_ago_in_words(token.last_used_at) %> ago</span>
+                        <span class="text-xs text-content-muted">·</span>
+                        <span class="text-xs text-content-muted">last used <%= time_ago_in_words(token.last_used_at) %> ago</span>
                       <% end %>
                     </div>
                     <%= button_to "Revoke", agent_token_path(agent, token),
                         method: :delete,
                         data: { turbo_confirm: "Revoke this token? Apps using it will lose access." },
-                        class: "px-2 py-1 text-[10px] font-semibold rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors cursor-pointer" %>
+                        class: "px-2.5 py-1 text-xs font-medium rounded-md text-[#b3261e] hover:bg-[rgba(179,38,30,0.06)] transition-colors cursor-pointer" %>
                   </li>
                 <% end %>
               </ul>
             <% else %>
-              <p class="text-[11px] text-content-muted">No tokens yet. Generate one above to connect this agent.</p>
+              <p class="text-sm text-content-muted">No tokens yet. Generate one above to connect this agent.</p>
             <% end %>
           </div>
         </li>

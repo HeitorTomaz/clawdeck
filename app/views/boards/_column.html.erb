@@ -4,16 +4,15 @@
     tasks:  ordered tasks for that column
 %>
 <%
-  # Stable color palette derived from column position so each column gets a
-  # distinct dot color without relying on the legacy status enum.
-  column_palette = ["#666", "#60a5fa", "#fbbf24", "#a78bfa", "#34d399", "#f472b6", "#22d3ee", "#facc15"]
+  # Warm palette derived from column position
+  column_palette = ["#5f5f5d", "#1f5fa8", "#a07400", "#6d4eb8", "#1e7a4e", "#b3261e", "#2e8a8a", "#a07400"]
   dot_color = column_palette[column.position.to_i % column_palette.length]
   assigned_agent = column.respond_to?(:assigned_agent) ? column.assigned_agent : nil
 %>
 
 <div id="board-column-<%= column.id %>"
      class="flex-shrink-0 flex flex-col h-full overflow-hidden column-card"
-     style="width:280px"
+     style="width:300px"
      data-controller="inline-add column-actions"
      data-inline-add-column-id-value="<%= column.id %>"
      data-inline-add-url-value="<%= board_tasks_path(@board) %>"
@@ -22,25 +21,23 @@
      data-column-id="<%= column.id %>"
      data-column-position="<%= column.position %>">
   <%# Column Header %>
-  <div class="flex items-center gap-2 group" style="padding:6px 8px 10px">
+  <div class="flex items-center gap-2 group px-2 pt-1.5 pb-3">
     <%# Drag handle %>
     <button type="button"
-            class="column-drag-handle cursor-grab opacity-0 group-hover:opacity-60 hover:opacity-100 transition-opacity"
-            title="Drag to reorder"
-            style="background:none;border:none;padding:0;color:#666">
+            class="column-drag-handle cursor-grab opacity-0 group-hover:opacity-60 hover:opacity-100 transition-opacity text-content-muted"
+            title="Drag to reorder">
       <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor"><circle cx="2" cy="3" r="1"/><circle cx="8" cy="3" r="1"/><circle cx="2" cy="7" r="1"/><circle cx="8" cy="7" r="1"/><circle cx="2" cy="11" r="1"/><circle cx="8" cy="11" r="1"/></svg>
     </button>
 
-    <div style="width:7px;height:7px;background:<%= dot_color %>"></div>
-    <span class="font-display" style="font-size:13px;font-weight:700;color:#ffffff;text-transform:uppercase;letter-spacing:0.12em"><%= column.name %></span>
-    <span id="column-<%= column.id %>-count" style="font-size:10px;font-weight:700;color:#7e7e7e;background:transparent;border:1px solid #262626;padding:0 7px;border-radius:0;line-height:18px;letter-spacing:0.08em"><%= tasks.count %></span>
+    <div class="w-2 h-2 rounded-full" style="background:<%= dot_color %>"></div>
+    <span class="text-sm font-medium text-content tracking-[-0.01em]"><%= column.name %></span>
+    <span id="column-<%= column.id %>-count" class="text-xs font-medium text-content-muted bg-bg-elevated border border-border rounded-full px-2 py-0.5"><%= tasks.count %></span>
 
     <%# Agent chip %>
     <% if assigned_agent.present? %>
-      <span class="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-md"
-            style="background:rgba(167,139,250,0.10);border:1px solid rgba(167,139,250,0.2);font-size:10px;font-weight:600;color:#a78bfa"
+      <span class="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#6d4eb8]/8 border border-[#6d4eb8]/20 text-xs font-medium text-[#6d4eb8]"
             title="Assigned to <%= assigned_agent.name %>">
-        <span class="inline-flex items-center justify-center w-4 h-4 rounded-full" style="background:rgba(167,139,250,0.25);font-size:9px;color:#e9d5ff">
+        <span class="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-[#6d4eb8]/20 text-[9px] text-[#6d4eb8]">
           <%= assigned_agent.name.to_s.first.to_s.upcase %>
         </span>
         <%= assigned_agent.name %>
@@ -53,28 +50,27 @@
               data-dropdown-target="button"
               data-action="click->dropdown#toggle"
               aria-expanded="false"
-              class="cursor-pointer rounded p-1 hover:bg-white/[0.06] transition-colors"
-              style="color:#666;background:none;border:none">
+              class="cursor-pointer rounded p-1 text-content-muted hover:bg-bg-hover hover:text-content transition-colors">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><circle cx="3" cy="8" r="1.3"/><circle cx="8" cy="8" r="1.3"/><circle cx="13" cy="8" r="1.3"/></svg>
       </button>
       <div data-dropdown-target="menu"
-           class="hidden absolute right-0 top-full mt-1 w-44 p-1 rounded-lg border border-white/[0.08] bg-bg-elevated z-30"
-           style="box-shadow:0 12px 40px rgba(0,0,0,0.5)">
+           class="hidden absolute right-0 top-full mt-1 w-44 p-1 rounded-lg border border-border bg-bg-elevated z-30"
+           style="box-shadow:0 12px 40px rgba(0,0,0,0.12)">
         <%= link_to edit_board_column_path(@board, column),
             data: { turbo_frame: "column_form_modal", action: "click->dropdown#close" },
-            class: "block w-full text-left px-2.5 py-2 rounded text-[12px] font-medium text-content-secondary hover:bg-white/[0.04] transition-colors" do %>
+            class: "block w-full text-left px-2.5 py-2 rounded-md text-sm font-normal text-content-secondary hover:bg-bg-hover transition-colors" do %>
           Rename / Edit
         <% end %>
         <%= link_to edit_board_column_path(@board, column, focus: "agent"),
             data: { turbo_frame: "column_form_modal", action: "click->dropdown#close" },
-            class: "block w-full text-left px-2.5 py-2 rounded text-[12px] font-medium text-content-secondary hover:bg-white/[0.04] transition-colors" do %>
+            class: "block w-full text-left px-2.5 py-2 rounded-md text-sm font-normal text-content-secondary hover:bg-bg-hover transition-colors" do %>
           <%= assigned_agent.present? ? "Change agent" : "Assign agent" %>
         <% end %>
         <button type="button"
                 data-action="click->column-actions#confirmDelete click->dropdown#close"
                 data-column-name="<%= column.name %>"
                 data-task-count="<%= tasks.count %>"
-                class="block w-full text-left px-2.5 py-2 rounded text-[12px] font-medium text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer">
+                class="block w-full text-left px-2.5 py-2 rounded-md text-sm font-normal text-[#b3261e] hover:bg-[rgba(179,38,30,0.06)] transition-colors cursor-pointer">
           Delete column
         </button>
       </div>
@@ -83,8 +79,7 @@
 
   <%# Tasks List %>
   <ul id="column-<%= column.id %>"
-      class="flex-1 flex flex-col gap-[5px] min-h-[2rem] overflow-y-hidden hover:overflow-y-auto transition-all duration-[120ms] list-none m-0"
-      style="border-radius:0;padding:6px;background:transparent;border:2px solid transparent;border-top:1px solid #262626"
+      class="flex-1 flex flex-col gap-2 min-h-[2rem] overflow-y-hidden hover:overflow-y-auto transition-all duration-[120ms] list-none m-0 border-t border-border pt-2 px-1.5"
       data-controller="sortable"
       data-sortable-group-value="board"
       data-sortable-column-id-value="<%= column.id %>"
@@ -96,16 +91,16 @@
 
   <%# Inline Add Card Form (hidden by default) %>
   <div data-inline-add-target="form" class="hidden px-1.5 py-1.5">
-    <div class="bg-bg-elevated rounded-lg border border-border p-2">
+    <div class="bg-bg-elevated rounded-xl border border-border p-2">
       <textarea data-inline-add-target="input"
                 data-action="keydown->inline-add#handleKeydown"
                 placeholder="Enter a title for this card..."
                 rows="3"
-                class="w-full bg-transparent text-sm text-content placeholder-content-muted resize-none focus:outline-none"></textarea>
+                class="w-full bg-transparent text-sm text-content placeholder:text-content-muted resize-none focus:outline-none"></textarea>
       <div class="flex items-center gap-2 mt-2">
         <button type="button"
                 data-action="click->inline-add#submit"
-                class="px-3 py-1.5 text-xs font-semibold rounded bg-accent text-content hover:bg-accent-hover transition-colors cursor-pointer">
+                class="px-3 py-1.5 text-sm font-medium rounded-md bg-content text-content-inverse btn-inset-shadow hover:opacity-90 transition-opacity cursor-pointer">
           Add card
         </button>
         <button type="button"
@@ -123,10 +118,7 @@
   <div data-inline-add-target="button" class="px-1.5 py-1">
     <button type="button"
             data-action="click->inline-add#show"
-            class="w-full flex items-center gap-1.5 rounded-lg cursor-pointer border-none bg-transparent transition-colors"
-            style="padding:8px 10px;font-size:12px;font-weight:500;color:#333"
-            onmouseenter="this.style.color='#666'"
-            onmouseleave="this.style.color='#333'">
+            class="w-full flex items-center gap-1.5 rounded-md cursor-pointer border-none bg-transparent transition-colors text-sm font-normal text-content-muted hover:text-content hover:bg-bg-hover px-3 py-2">
       <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M14 8H2M8 2V14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       Add a card
     </button>

@@ -8,7 +8,7 @@
 
   <% if user_agents.empty? %>
     <%= link_to new_agent_path,
-        class: "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium bg-bg-elevated text-content-muted hover:text-content transition-colors" do %>
+        class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium bg-bg-base border border-border text-content-muted hover:text-content transition-colors" do %>
       <span>🤖</span>
       <span>Create an agent</span>
     <% end %>
@@ -18,9 +18,9 @@
               data-dropdown-target="button"
               data-action="click->dropdown#toggle"
               aria-expanded="false"
-              class="cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors <%= assigned ? 'bg-purple-500/15 text-purple-200 border border-purple-500/25' : 'bg-bg-elevated text-content-secondary border border-white/[0.06] hover:bg-bg-hover' %>">
+              class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors <%= assigned ? 'bg-[#6d4eb8]/10 text-[#6d4eb8] border border-[#6d4eb8]/25' : 'bg-bg-base text-content-secondary border border-border hover:bg-bg-hover' %>">
         <% if assigned %>
-          <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-purple-500/25 text-[9px] font-bold text-purple-200"><%= assigned.name.first.to_s.upcase %></span>
+          <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#6d4eb8]/20 text-[9px] font-semibold text-[#6d4eb8]"><%= assigned.name.first.to_s.upcase %></span>
           <span><%= assigned.name %></span>
         <% else %>
           <span>🤖</span>
@@ -28,24 +28,24 @@
         <% end %>
       </button>
       <div data-dropdown-target="menu"
-           class="hidden absolute right-0 top-full mt-1 w-48 p-1 rounded-lg border border-white/[0.08] bg-bg-elevated z-30"
-           style="box-shadow:0 12px 40px rgba(0,0,0,0.5)">
+           class="hidden absolute right-0 top-full mt-1 w-48 p-1 rounded-lg border border-border bg-bg-elevated z-30"
+           style="box-shadow:0 12px 40px rgba(0,0,0,0.12)">
         <% user_agents.each do |agent| %>
           <%= button_to board_task_path(board, task),
               method: :patch,
               params: { task: { assigned_agent_id: agent.id } },
               data: { action: "click->dropdown#close" },
-              class: "block w-full text-left px-2.5 py-2 rounded text-[12px] font-medium #{assigned&.id == agent.id ? 'bg-white/[0.04] text-content' : 'text-content-secondary hover:bg-white/[0.04]'} transition-colors" do %>
+              class: "block w-full text-left px-2.5 py-2 rounded-md text-sm font-normal #{assigned&.id == agent.id ? 'bg-bg-hover text-content' : 'text-content-secondary hover:bg-bg-hover'} transition-colors" do %>
             <%= agent.name %>
           <% end %>
         <% end %>
         <% if assigned %>
-          <div class="h-px bg-white/[0.06] my-1"></div>
+          <div class="h-px bg-border my-1"></div>
           <%= button_to board_task_path(board, task),
               method: :patch,
               params: { task: { assigned_agent_id: "" } },
               data: { action: "click->dropdown#close" },
-              class: "block w-full text-left px-2.5 py-2 rounded text-[12px] font-medium text-content-muted hover:bg-white/[0.04] transition-colors" do %>
+              class: "block w-full text-left px-2.5 py-2 rounded-md text-sm font-normal text-content-muted hover:bg-bg-hover transition-colors" do %>
             Unassign
           <% end %>
         <% end %>

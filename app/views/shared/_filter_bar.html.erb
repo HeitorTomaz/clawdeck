@@ -1,37 +1,38 @@
 <%# Filter bar - usada em boards/show (kanban) e boards/list. %>
-<form method="get" action="<%= request.path %>" class="bg-bg-elevated border border-border p-3 mb-4">
+<form method="get" action="<%= request.path %>" class="bg-bg-elevated border border-border rounded-xl p-3 mb-4">
   <div class="flex flex-wrap gap-2 items-center">
-    <input type="text" name="q" value="<%= params[:q] %>" placeholder="Buscar no titulo ou corpo..."
-           class="bg-bg-surface border border-border text-content text-sm px-3 py-2 w-64" />
+    <input type="text" name="q" value="<%= params[:q] %>" placeholder="Buscar no título ou corpo..."
+           class="bg-bg-base border border-border text-content placeholder:text-content-muted text-sm px-3 py-2 w-64 rounded-md focus-soft" />
 
     <%# Tag multi-select (lista distinct tags do board) %>
     <% all_tags = board.tasks.pluck(:tags).flatten.uniq.compact.sort %>
-    <select name="tag[]" multiple class="bg-bg-surface border border-border text-content text-sm px-3 py-2">
+    <select name="tag[]" multiple class="bg-bg-base border border-border text-content text-sm px-3 py-2 rounded-md focus-soft">
       <% all_tags.each do |t| %>
         <option value="<%= t %>" <%= "selected" if Array(params[:tag]).include?(t) %>><%= t %></option>
       <% end %>
     </select>
 
     <%# Column multi-select %>
-    <select name="column[]" multiple class="bg-bg-surface border border-border text-content text-sm px-3 py-2">
+    <select name="column[]" multiple class="bg-bg-base border border-border text-content text-sm px-3 py-2 rounded-md focus-soft">
       <% board.columns.ordered.each do |c| %>
         <option value="<%= c.name %>" <%= "selected" if Array(params[:column]).include?(c.name) %>><%= c.name %></option>
       <% end %>
     </select>
 
     <%# Touched by - agentes do user %>
-    <select name="touched_by[]" multiple class="bg-bg-surface border border-border text-content text-sm px-3 py-2">
+    <select name="touched_by[]" multiple class="bg-bg-base border border-border text-content text-sm px-3 py-2 rounded-md focus-soft">
       <% current_user.agents.order(:name).each do |a| %>
         <option value="<%= a.name.downcase %>" <%= "selected" if Array(params[:touched_by]).include?(a.name.downcase) %>><%= a.name %></option>
       <% end %>
     </select>
 
-    <button type="submit" class="bg-white text-black text-xs font-bold uppercase tracking-[0.14em] px-4 py-2">
+    <button type="submit" class="bg-content text-content-inverse text-sm font-medium px-4 py-2 rounded-md btn-inset-shadow hover:opacity-90 transition-opacity">
       Filtrar
     </button>
 
     <% if filters_active_count(params) > 0 %>
-      <%= link_to "Limpar", request.path, class: "text-xs text-content-muted hover:text-content uppercase tracking-[0.14em]" %>
+      <%= link_to "Limpar", request.path, class: "text-sm text-content-muted hover:text-content underline" %>
+      <span class="text-sm text-content-muted ml-1"><%= filters_active_count(params) %> filtro<%= "s" if filters_active_count(params) > 1 %> ativo<%= "s" if filters_active_count(params) > 1 %></span>
     <% end %>
   </div>
 </form>

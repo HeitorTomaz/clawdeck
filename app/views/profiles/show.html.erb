@@ -3,8 +3,8 @@
 
 <div class="space-y-6 mt-12">
   <!-- Section 1: Profile -->
-  <div class="bg-bg-surface border border-border rounded-lg p-5 space-y-4">
-    <h3 class="text-xs font-medium text-content-muted uppercase tracking-wider font-display">Profile</h3>
+  <div class="bg-bg-elevated border border-border rounded-xl p-6 space-y-4">
+    <h3 class="text-base font-semibold text-content tracking-[-0.01em]">Profile</h3>
 
     <%= form_with(model: @user, url: settings_path, method: :patch, class: "space-y-4") do |form| %>
       <!-- Avatar -->
@@ -36,7 +36,7 @@
         <% if @user.errors[:avatar].any? %>
           <div class="mt-2">
             <% @user.errors[:avatar].each do |error| %>
-              <p class="text-status-error text-xs">Avatar <%= error %></p>
+              <p class="text-[#b3261e] text-xs">Avatar <%= error %></p>
             <% end %>
           </div>
         <% end %>
@@ -49,27 +49,27 @@
         <% if @user.errors[:email_address].any? %>
           <div class="mt-1">
             <% @user.errors[:email_address].each do |error| %>
-              <p class="text-status-error text-xs">Email <%= error %></p>
+              <p class="text-[#b3261e] text-xs">Email <%= error %></p>
             <% end %>
           </div>
         <% end %>
       </div>
 
       <div class="pt-2">
-        <%= form.submit "Save profile", class: "cursor-pointer px-4 py-2 bg-accent text-content hover:bg-accent-hover text-xs font-semibold rounded-md transition-colors duration-200" %>
+        <%= form.submit "Save profile", class: "cursor-pointer px-4 py-2 bg-content text-content-inverse btn-inset-shadow hover:opacity-90 text-xs font-semibold rounded-md transition-colors duration-200" %>
       </div>
     <% end %>
   </div>
 
   <!-- Section 2: Agents -->
-  <div class="bg-bg-surface border border-border rounded-lg p-5 space-y-4">
+  <div class="bg-bg-elevated border border-border rounded-xl p-6 space-y-4">
     <div class="flex items-center justify-between">
       <div>
-        <h3 class="text-sm font-semibold text-content font-display">Agents & API tokens</h3>
+        <h3 class="text-base font-semibold text-content tracking-[-0.01em]">Agents & API tokens</h3>
         <p class="text-xs text-content-muted mt-1">Each connected automation is an agent. Tokens are bound to a specific agent.</p>
       </div>
       <%= link_to "Manage all", agents_path,
-          class: "px-3 py-1.5 text-xs font-semibold rounded-md bg-white/[0.04] hover:bg-white/[0.08] text-content-secondary transition-colors" %>
+          class: "px-3 py-1.5 text-xs font-semibold rounded-md border border-border hover:bg-bg-hover text-content-secondary transition-colors" %>
     </div>
 
     <% user_agents = @user.respond_to?(:agents) ? @user.agents.order(:name) : [] %>
@@ -78,7 +78,7 @@
       <div class="bg-bg-elevated rounded-md px-3 py-4 text-center">
         <p class="text-xs text-content-secondary mb-3">No agents yet. Create one to connect an automation.</p>
         <%= link_to "Create agent", new_agent_path,
-            class: "inline-flex px-3 py-1.5 text-xs font-semibold rounded-md bg-accent text-content hover:bg-accent-hover transition-colors" %>
+            class: "inline-flex px-3 py-1.5 text-xs font-semibold rounded-md bg-content text-content-inverse btn-inset-shadow hover:opacity-90 transition-colors" %>
       </div>
     <% else %>
       <ul class="space-y-3 list-none p-0 m-0">
@@ -86,7 +86,7 @@
           <li class="bg-bg-elevated rounded-md p-3">
             <div class="flex items-center justify-between gap-3">
               <div class="flex items-center gap-2.5 min-w-0">
-                <div class="w-8 h-8 rounded-md bg-purple-500/15 border border-purple-500/25 flex items-center justify-center text-xs font-bold text-purple-200">
+                <div class="w-8 h-8 rounded-md bg-[#6d4eb8]/15 border border-[#6d4eb8]/25 flex items-center justify-center text-xs font-bold text-[#6d4eb8]">
                   <%= agent.name.first.to_s.upcase %>
                 </div>
                 <div class="min-w-0">
@@ -98,18 +98,18 @@
               </div>
               <div class="flex items-center gap-2">
                 <%= link_to "Edit", edit_agent_path(agent),
-                    class: "px-2 py-1 text-[10px] font-semibold rounded bg-white/[0.04] hover:bg-white/[0.08] text-content-secondary transition-colors" %>
+                    class: "px-2 py-1 text-[10px] font-semibold rounded border border-border hover:bg-bg-hover text-content-secondary transition-colors" %>
                 <%= button_to "New token", regenerate_agent_token_path(agent),
                     method: :post,
                     data: { turbo_confirm: "Generate a new token? You'll only see it once." },
-                    class: "px-2 py-1 text-[10px] font-semibold rounded bg-accent/20 text-accent hover:bg-accent/30 transition-colors cursor-pointer" %>
+                    class: "px-3 py-1.5 text-xs font-medium rounded-md border border-border text-content-secondary hover:bg-bg-hover hover:text-content transition-colors cursor-pointer" %>
               </div>
             </div>
 
             <%# Show raw_token once, right after creation %>
             <% if defined?(@new_raw_token) && @new_raw_token.present? && defined?(@new_raw_token_agent_id) && @new_raw_token_agent_id == agent.id %>
-              <div class="mt-3 p-2.5 rounded-md bg-status-success/10 border border-status-success/30" data-controller="clipboard">
-                <div class="text-[10px] font-semibold uppercase tracking-wider text-status-success mb-1.5">New token — copy now, you won't see it again</div>
+              <div class="mt-3 p-2.5 rounded-md bg-[#1e7a4e]/8 border border-[#1e7a4e]/30" data-controller="clipboard">
+                <div class="text-[10px] font-semibold uppercase tracking-wider text-[#1e7a4e] mb-1.5">New token — copy now, you won't see it again</div>
                 <div class="flex items-center gap-2">
                   <code data-clipboard-target="source"
                         class="flex-1 text-[11px] font-mono text-content-secondary bg-bg-base px-2 py-1.5 rounded break-all"><%= @new_raw_token %></code>
@@ -132,7 +132,7 @@
                     <%= button_to "Revoke", agent_token_path(agent, token),
                         method: :delete,
                         data: { turbo_confirm: "Revoke this token?" },
-                        class: "px-1.5 py-0.5 text-[10px] font-semibold rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors cursor-pointer" %>
+                        class: "px-1.5 py-0.5 text-[10px] font-semibold rounded text-[#b3261e] hover:bg-[rgba(179,38,30,0.06)] transition-colors cursor-pointer" %>
                   </li>
                 <% end %>
               </ul>

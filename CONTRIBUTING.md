@@ -42,7 +42,7 @@ bin/dev
 
 ## Questions?
 
-Open a Discussion or join our Discord.
+Open a Discussion on GitHub.
 
 ---
 

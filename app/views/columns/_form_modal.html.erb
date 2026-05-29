@@ -6,13 +6,13 @@
 <div class="fixed inset-0 z-[60] flex items-center justify-center"
      data-controller="column-form-modal"
      data-action="keydown.esc->column-form-modal#close">
-  <div class="absolute inset-0 bg-black/60" data-action="click->column-form-modal#close"></div>
-  <div class="relative bg-bg-surface border border-white/[0.08] rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
-    <div class="px-5 py-4 border-b border-white/[0.06] flex items-center justify-between">
-      <span class="text-sm font-bold text-content"><%= title %></span>
+  <div class="absolute inset-0 bg-black/30" data-action="click->column-form-modal#close"></div>
+  <div class="relative bg-bg-elevated border border-border rounded-2xl w-full max-w-md mx-4 overflow-hidden" style="box-shadow: 0 12px 40px rgba(0,0,0,0.12);">
+    <div class="px-5 py-4 border-b border-border flex items-center justify-between">
+      <span class="text-base font-semibold text-content"><%= title %></span>
       <button type="button"
               data-action="click->column-form-modal#close"
-              class="p-2 rounded-lg text-content-muted hover:text-content hover:bg-white/[0.04] transition-colors cursor-pointer">
+              class="p-2 rounded-md text-content-muted hover:text-content hover:bg-bg-hover transition-colors cursor-pointer">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
         </svg>
@@ -21,7 +21,7 @@
 
     <%= form_with model: column, url: url, method: method, class: "p-5 space-y-4" do |form| %>
       <% if column.errors.any? %>
-        <div class="p-3 bg-status-error/20 text-status-error text-xs rounded-md">
+        <div class="p-3 bg-[#b3261e]/8 border border-[#b3261e]/25 text-[#b3261e] text-sm rounded-md">
           <ul class="list-disc list-inside">
             <% column.errors.full_messages.each do |message| %>
               <li><%= message %></li>
@@ -31,22 +31,22 @@
       <% end %>
 
       <div>
-        <label class="block text-xs font-medium text-content-secondary mb-1.5">Column name</label>
+        <label class="block text-sm font-medium text-content mb-1.5">Column name</label>
         <%= form.text_field :name,
             required: true,
             autofocus: true,
             placeholder: "e.g., Backlog, Doing, Shipped",
-            class: "w-full px-3 py-2 text-sm bg-bg-card border border-white/[0.08] rounded-lg focus:outline-none focus:ring-2 focus:ring-accent text-content placeholder-content-muted" %>
+            class: "w-full px-3 py-2 text-sm bg-bg-base border border-border rounded-md focus-soft text-content placeholder:text-content-muted" %>
       </div>
 
       <% available_agents = (defined?(current_user) && current_user.respond_to?(:agents)) ? current_user.agents.order(:name) : [] %>
       <div>
-        <label class="block text-xs font-medium text-content-secondary mb-1.5">Assigned agent (optional)</label>
+        <label class="block text-sm font-medium text-content mb-1.5">Assigned agent (optional)</label>
         <%= form.select :assigned_agent_id,
             available_agents.map { |a| [a.name, a.id] },
             { include_blank: "— No agent —", selected: column.assigned_agent_id },
-            class: "w-full px-3 py-2 text-sm bg-bg-card border border-white/[0.08] rounded-lg focus:outline-none focus:ring-2 focus:ring-accent text-content" %>
-        <p class="mt-1 text-[11px] text-content-muted">
+            class: "w-full px-3 py-2 text-sm bg-bg-base border border-border rounded-md focus-soft text-content" %>
+        <p class="mt-1 text-xs text-content-muted">
           Optional. Pin a default agent that owns work landing in this column.
         </p>
       </div>
@@ -54,11 +54,11 @@
       <div class="flex items-center justify-end gap-3 pt-2">
         <button type="button"
                 data-action="click->column-form-modal#close"
-                class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-content-secondary transition-colors cursor-pointer">
+                class="px-4 py-2 text-sm font-medium rounded-md border border-[rgba(28,28,28,0.4)] text-content hover:bg-bg-hover transition-colors cursor-pointer">
           Cancel
         </button>
         <%= form.submit submit_label,
-            class: "px-3 py-1.5 text-xs font-semibold rounded-lg bg-accent text-content hover:bg-accent-hover transition-colors cursor-pointer" %>
+            class: "px-4 py-2 text-sm font-medium rounded-md bg-content text-content-inverse btn-inset-shadow hover:opacity-90 transition-opacity cursor-pointer" %>
       </div>
     <% end %>
   </div>

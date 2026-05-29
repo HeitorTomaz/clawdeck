@@ -1,6 +1,6 @@
-# ClawDeck UI Migration — v2 → v3 Cockpit
+# ClawDeck UI Migration — Cockpit → Cream
 
-The system moved from a low-contrast neutral-dark palette (v2) to a high-contrast cockpit aesthetic (v3): pure-black canvas, white UPPERCASE display, Saira Condensed type, sharp 0-radius rectangles, hairline borders, and a tricolor brand stripe.
+The system moved from a high-contrast cockpit aesthetic (pure-black canvas, Saira Condensed UPPERCASE display, sharp 0-radius rectangles, tricolor BMW stripe) to the current warm humanist system: parchment cream canvas, Instrument Sans throughout, rounded corners, hairline `#eceae4` borders.
 
 > Token spec: `DESIGN.md` (repo root).
 > Component spec: `DESIGN_SYSTEM.md` (this folder).
@@ -9,71 +9,71 @@ The system moved from a low-contrast neutral-dark palette (v2) to a high-contras
 
 ## What changed at the token level
 
-| Token | v2 | v3 |
+| Token | Old (cockpit) | New (cream) |
 |---|---|---|
-| `--color-bg-base` | `#161619` | **`#000000`** |
-| `--color-bg-surface` | `#161619` | `#0d0d0d` |
-| `--color-bg-card` | `#1e1e22` | `#1a1a1a` |
-| `--color-content` | `#f0f0f0` | **`#ffffff`** |
-| `--color-border` | `rgba(255,255,255,0.05)` | **`#262626`** (solid hairline) |
-| Display font | Plus Jakarta Sans 800 | **Saira Condensed 800 UPPERCASE** |
-| Body font | Plus Jakarta Sans 500 | **Saira 300 (Light)** |
-| Default radius | 8–14px | **0px** |
-| Accent | red `#ef4444` only | tricolor `#0066b1 / #1c69d4 / #e22718` |
+| `--color-bg-base` | `#000000` | **`#f7f4ed`** |
+| `--color-bg-surface` | `#141414` | `#f7f4ed` |
+| `--color-bg-card` | `#1f1f1f` | `#f7f4ed` |
+| `--color-bg-elevated` | `#262626` | `#fcfbf8` |
+| `--color-content` | `#ffffff` | **`#1c1c1c`** |
+| `--color-content-secondary` | `#bbbbbb` | `rgba(28,28,28,0.82)` |
+| `--color-border` | `#3a3a3a` | **`#eceae4`** |
+| `--color-border-hover` | `#5c5c5c` | `rgba(28,28,28,0.4)` |
+| Display font | Saira Condensed 800 UPPERCASE | **Instrument Sans 600** |
+| Body font | Saira 300 (Light) | **Instrument Sans 400** |
+| Default radius | 0px | **6px (buttons), 12px (cards)** |
+| Accent | Tricolor `#0066b1 / #1c69d4 / #e22718` | Charcoal `#1c1c1c` (dark inset shadow) |
+| Project red | `#e22718` | `#b3261e` |
+
+Utilitários removidos: `.tricolor-stripe`, `.tricolor-stripe-vertical`, `.label-uppercase`.
+Utilitários adicionados: `.btn-inset-shadow`, `.focus-soft`.
 
 ---
 
 ## Migration order (when porting a view)
 
-1. **Audit hardcoded colors.** Search for `#161619`, `#1e1e22`, `#f0f0f0`, `#e0e0e0`, `#888`, `rgba(255,255,255,0.0` — these are v2 literals. Map them to v3 (`#000000`, `#1a1a1a`, `#ffffff`, `#7e7e7e`, `#262626`).
-2. **Drop atmospheric chrome.** Replace `bg-white/[0.04]` / `border-white/[0.08]` with solid hairlines (`bg-[#1a1a1a]`, `border-[#262626]`).
-3. **Sharpen corners.** Remove every `rounded-lg`, `rounded-xl`, `rounded-2xl`, `rounded-[14px]`, `border-radius:10px`. Default to `border-radius:0`. Keep `rounded-full` for avatars / dots only.
-4. **Promote headlines.** Wrap h1/h2 with `font-display font-extrabold uppercase tracking-tight`. Convert section labels to `.label-uppercase` utility.
-5. **Lighten body.** Body text moves to `font-light` (300). Never go heavier than `font-normal` (400) for running text.
-6. **CTAs invert.** Primary action becomes white-on-black with uppercase letterspaced label. Red is reserved for destructive only.
-7. **Brand moments get the stripe.** Add `<div class="tricolor-stripe"></div>` at the top of major surfaces (login card, task panel, settings header).
+1. **Audit dark literals.** Search for `#000000`, `#0d0d0d`, `#1a1a1a`, `#141414`, `#1f1f1f`, `#262626`, `#3a3a3a`, `#3c3c3c`, `#7e7e7e`, `#bbbbbb`. Mapear para os equivalentes cream (ver tabela acima).
+2. **Drop atmospheric chrome.** Replace `bg-white/[0.04]`, `border-white/[0.08]` por sólidos (`bg-bg-elevated`, `border-border`).
+3. **Round corners.** Adicionar `rounded-md` (6px) em botões/inputs, `rounded-xl` (12px) em cards, `rounded-full` em chips/dots. Remover `style="border-radius:0"`.
+4. **Demote headlines.** Trocar `font-display font-extrabold uppercase tracking-tight` por `font-semibold tracking-[-0.025em]`. Sentence case.
+5. **Heavier body.** Body sai de `font-light` (300) para `font-normal` (400). Buttons/card titles `font-medium` (500).
+6. **CTAs invert.** Primary action passa a ser `bg-content text-content-inverse rounded-md btn-inset-shadow` (charcoal com inset shadow). Sem uppercase, sem letter-spacing extra.
+7. **Strip the stripe.** Remover qualquer `<div class="tricolor-stripe"></div>`.
+8. **Soft focus.** Inputs ganham `.focus-soft` em vez de `border-white` no focus.
 
 ---
 
-## Files migrated in v3 baseline
+## Arquivos migrados na passagem Cockpit → Cream
 
-- `app/assets/tailwind/application.css` — `@theme` tokens, base layer rules, `.label-uppercase` + `.tricolor-stripe` utilities.
-- `app/views/layouts/application.html.erb` — Saira font links, `bg-black` body.
-- `app/views/layouts/landing.html.erb` — Saira font links, plain black background (removed `.stars` / `.nebula` decorations).
-- `app/views/shared/_navbar.html.erb` — canvas-black navbar, Saira Condensed UPPERCASE board name.
-- `app/views/boards/_task_card.html.erb` — solid hairline card, sharp corners, white title.
-- `app/views/boards/_column.html.erb` — UPPERCASE column header, hairline count chip, sharp corners.
-- `app/views/boards/show.html.erb` — sharp-corner "Add column" CTA.
-- `app/views/boards/tasks/_panel.html.erb` — tricolor stripe header, Saira Condensed title, hairline status pill.
-- `app/views/home/show.html.erb` — Saira Condensed greeting, UPPERCASE section labels, solid hairline cards.
-- `app/views/sessions/new.html.erb` — full v3 login form.
-- `app/views/pages/home.html.erb` — landing hero + login card in v3.
+- `app/assets/tailwind/application.css` — `@theme` reescrito, utilitários novos.
+- `app/views/layouts/application.html.erb` — fontes Instrument Sans, body cream.
+- `app/views/layouts/landing.html.erb` — idem.
+- `app/views/layouts/admin.html.erb` — Plus Jakarta Sans → Instrument Sans.
+- `app/views/layouts/auth.html.erb` — Clash Display/Satoshi → Instrument Sans.
+- `app/views/shared/_navbar.html.erb` — chrome cream, remove Discord, GitHub aponta para `HeitorTomaz/clawdeck`.
+- `app/views/application/_navbar.html.erb` — idem.
+- `app/views/shared/_filter_bar.html.erb` — chips pill cream.
+- `app/views/shared/_command_bar.html.erb`, `_new_board_modal.html.erb`, `_task_activities.html.erb`.
+- `app/views/application/_delete_modal.html.erb`.
+- `app/views/boards/show.html.erb`, `list.html.erb`, `_header.html.erb`, `_column.html.erb`, `_task_card.html.erb`.
+- `app/views/boards/tasks/new.html.erb`, `show.html.erb`, `_panel.html.erb`, `_agent_assignment.html.erb`, `_subtasks.html.erb`.
+- `app/views/agents/index.html.erb`, `new.html.erb`, `edit.html.erb`.
+- `app/views/sessions/new.html.erb`, `passwords/new.html.erb`, `passwords/edit.html.erb`, `registrations/new.html.erb`, `profiles/show.html.erb`.
+- `app/views/home/show.html.erb`, `pages/home.html.erb`.
+- `app/views/columns/_manage_modal.html.erb`, `columns/_form_modal.html.erb`.
+- `app/helpers/application_helper.rb` — `board_hex_color` / `activity_icon_bg` ajustados para paleta cream.
 
----
-
-## Still on v2 (migrate as touched)
-
-These views still use v2 chrome and will inherit the new tokens via `@theme` but won't pick up the Saira Condensed / UPPERCASE display unless their headlines are explicitly migrated:
-
-- `app/views/admin/**`
-- `app/views/passwords/**`
-- `app/views/registrations/new.html.erb`
-- `app/views/columns/_manage_modal.html.erb`, `columns/_form_modal.html.erb`
-- `app/views/agents/**`
-- `app/views/profiles/show.html.erb`
-- `app/views/shared/_command_bar.html.erb`, `_new_board_modal.html.erb`, `_task_activities.html.erb`
-- `app/views/boards/_header.html.erb`, `boards/tasks/_agent_assignment.html.erb`, `boards/tasks/_subtasks.html.erb`
-
-When migrating any of these, follow the 7-step checklist above.
+Protótipos JSX removidos (`docs/design/clawdeck-board-v3.jsx`, `clawdeck-home-v4.jsx`).
 
 ---
 
-## How to verify a migrated view
+## Verificação pós-migração
 
-1. Boot the dev server, navigate to the view in a browser.
-2. Confirm canvas is pure black (`#000000`) — not `#161619` or `#0c0c0f`.
-3. Confirm h1/h2 are UPPERCASE in Saira Condensed.
-4. Confirm body copy is Saira Light (300 weight).
-5. Confirm corners are square (no `rounded-*` showing in DevTools).
-6. Confirm borders are solid hairlines, not translucent whites.
-7. Selection color (`::selection`) should highlight in tricolor-red `#e22718`.
+1. `bin/dev` ou `bin/rails s`, navegar pela view.
+2. Canvas é cream (`#f7f4ed`) — não `#000000`.
+3. h1/h2 em Instrument Sans 600 sentence-case.
+4. Corpo em Instrument Sans 400.
+5. Cantos arredondados (`rounded-md`, `rounded-xl`, `rounded-full` apenas).
+6. Bordas são hairlines `#eceae4` ou interativa `rgba(28,28,28,0.4)`.
+7. Seleção (`::selection`) destaca em charcoal `#1c1c1c` sobre `#fcfbf8`.
+8. Botão primário tem inset shadow (DevTools mostra `.btn-inset-shadow`).

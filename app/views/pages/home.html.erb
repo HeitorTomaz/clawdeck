@@ -2,80 +2,72 @@
 
   <div class="w-full max-w-md">
 
-    <!-- Tricolor brand stripe -->
-    <div class="tricolor-stripe mb-10"></div>
-
     <!-- Logo + brief intro -->
     <div class="text-left mb-10">
-      <div class="label-uppercase text-[#7e7e7e] mb-4">ClawDeck · v1</div>
-      <h1 class="font-display text-5xl sm:text-6xl font-extrabold uppercase text-white leading-[0.92] tracking-tight mb-5">
+      <div class="text-sm font-medium text-content-muted mb-4">ClawDeck · v1</div>
+      <h1 class="text-5xl sm:text-6xl font-semibold text-content leading-[1.05] tracking-[-0.04em] mb-5">
         Where humans<br>and AI agents<br>share the board.
       </h1>
-      <p class="text-sm font-light text-[#bbbbbb] leading-relaxed max-w-sm">
+      <p class="text-base text-content-secondary leading-relaxed max-w-sm">
         A simple kanban for the work you do — and the work your agents do for you.
       </p>
     </div>
 
     <!-- Login card -->
-    <div class="bg-[#0d0d0d] border border-[#262626] p-7" style="border-radius:0">
+    <div class="bg-bg-elevated border border-border rounded-2xl p-7">
 
       <% if notice.present? %>
-        <div class="mb-4 py-2 px-3 bg-status-success/20 text-status-success text-xs font-medium rounded-md">
+        <div class="mb-4 py-2 px-3 bg-[#1e7a4e]/10 border border-[#1e7a4e]/25 text-[#1e7a4e] text-sm font-medium rounded-md">
           <%= notice %>
         </div>
       <% end %>
       <% if alert.present? %>
-        <div class="mb-4 py-2 px-3 bg-status-error/20 text-status-error text-xs font-medium rounded-md">
+        <div class="mb-4 py-2 px-3 bg-[#b3261e]/8 border border-[#b3261e]/25 text-[#b3261e] text-sm font-medium rounded-md">
           <%= alert %>
         </div>
       <% end %>
 
-      <h2 class="font-display text-2xl font-extrabold uppercase text-white mb-1 tracking-tight">Sign in</h2>
-      <p class="text-xs font-light text-[#bbbbbb] mb-6">Welcome back. Pick up where you left off.</p>
+      <h2 class="text-2xl font-semibold text-content tracking-[-0.025em] mb-1">Sign in</h2>
+      <p class="text-sm font-normal text-content-secondary mb-6">Welcome back. Pick up where you left off.</p>
 
       <% if User.respond_to?(:github_oauth_enabled?) && User.github_oauth_enabled? %>
-        <%= button_to "/auth/github", method: :post, class: "w-full cursor-pointer inline-flex items-center justify-center gap-2 p-3 bg-[#1a1a1a] text-white hover:bg-[#262626] transition-colors text-xs font-bold uppercase tracking-[0.14em] mb-4 border border-[#3c3c3c]", data: { turbo: false }, form: { style: "border-radius:0" } do %>
+        <%= button_to "/auth/github", method: :post, class: "w-full cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-bg-base text-content hover:bg-bg-hover transition-colors text-sm font-medium border border-[rgba(28,28,28,0.4)] rounded-md mb-4", data: { turbo: false } do %>
           <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" />
           </svg>
           Continue with GitHub
         <% end %>
 
-        <div class="relative mb-4">
-          <div class="absolute inset-0 flex items-center">
-            <div class="w-full border-t border-border"></div>
-          </div>
-          <div class="relative flex justify-center text-xs">
-            <span class="px-2 bg-bg-surface text-content-muted">or</span>
-          </div>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="flex-1 h-px bg-border"></div>
+          <span class="text-xs text-content-muted">or</span>
+          <div class="flex-1 h-px bg-border"></div>
         </div>
       <% end %>
 
       <%= form_with url: session_url, class: "space-y-3", html: { autocomplete: "off" } do |form| %>
-        <div class="isolate -space-y-px rounded-md">
-          <div class="relative bg-bg-elevated px-3 pb-1.5 pt-2.5 ring-1 ring-inset ring-[#3c3c3c] focus-within:z-10 focus-within:ring-1 focus-within:ring-white">
-            <%= form.label :email_address, "Email", class: "block text-xs font-medium text-content-muted" %>
-            <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "email", placeholder: "name@domain.com", value: params[:email_address], class: "block w-full border-0 p-0 text-content placeholder:text-content-muted focus:ring-0 text-sm leading-6 bg-transparent" %>
-          </div>
-          <div class="relative bg-bg-elevated px-3 pb-1.5 pt-2.5 ring-1 ring-inset ring-[#3c3c3c] focus-within:z-10 focus-within:ring-1 focus-within:ring-white">
-            <%= form.label :password, "Password", class: "block text-xs font-medium text-content-muted" %>
-            <%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Enter password", class: "block w-full border-0 p-0 text-content placeholder:text-content-muted focus:ring-0 text-sm leading-6 bg-transparent" %>
-          </div>
+        <div>
+          <%= form.label :email_address, "Email", class: "block text-sm font-medium text-content mb-1.5" %>
+          <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "email", placeholder: "name@domain.com", value: params[:email_address], class: "block w-full px-3 py-2.5 bg-bg-base border border-border rounded-md focus-soft text-content text-sm placeholder:text-content-muted" %>
+        </div>
+        <div>
+          <%= form.label :password, "Password", class: "block text-sm font-medium text-content mb-1.5" %>
+          <%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Enter password", class: "block w-full px-3 py-2.5 bg-bg-base border border-border rounded-md focus-soft text-content text-sm placeholder:text-content-muted" %>
         </div>
 
-        <%= form.submit "Sign in →", class: "w-full cursor-pointer p-3 bg-white text-black hover:bg-[#bbbbbb] transition-colors text-xs font-bold uppercase tracking-[0.18em]", style: "border-radius:0" %>
+        <%= form.submit "Sign in", class: "w-full cursor-pointer px-4 py-2.5 bg-content text-content-inverse btn-inset-shadow hover:opacity-90 transition-opacity text-sm font-medium rounded-md" %>
 
         <div class="flex items-center justify-between pt-1">
-          <%= link_to "Forgot password?", new_password_path, class: "text-xs text-content-secondary hover:text-content transition-colors" %>
-          <%= link_to "Create account", new_registration_path, class: "text-xs text-accent hover:text-accent-hover transition-colors font-medium" %>
+          <%= link_to "Forgot password?", new_password_path, class: "text-sm text-content-muted hover:text-content underline transition-colors" %>
+          <%= link_to "Create account", new_registration_path, class: "text-sm font-medium text-content hover:opacity-80 transition-opacity" %>
         </div>
       <% end %>
     </div>
 
     <!-- Footer -->
-    <p class="text-center text-xs text-content-muted mt-8">
+    <p class="text-center text-sm text-content-muted mt-8">
       Open-source ·
-      <a href="https://github.com/HeitorTomaz/clawdeck" target="_blank" rel="noopener" class="text-accent hover:text-accent-hover transition-colors">GitHub</a> ·
+      <a href="https://github.com/HeitorTomaz/clawdeck" target="_blank" rel="noopener" class="text-content underline hover:opacity-80 transition-opacity">GitHub</a> ·
       MIT License
     </p>
 
