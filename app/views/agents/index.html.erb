@@ -32,10 +32,22 @@
                 <% if agent.respond_to?(:description) && agent.description.present? %>
                   <div class="text-sm text-content-secondary mt-1"><%= agent.description %></div>
                 <% end %>
+                <% assigned_columns = agent.respond_to?(:columns_assigned) ? agent.columns_assigned.includes(:board).order(:position) : Column.where(assigned_agent_id: agent.id).includes(:board).order(:position) %>
+                <% assigned_task_count = agent.respond_to?(:tasks_assigned) ? agent.tasks_assigned.count : 0 %>
                 <div class="text-xs text-content-muted mt-2 font-mono">
                   <%= agent.api_tokens.count %> token(s) ·
-                  <%= agent.respond_to?(:tasks_assigned) ? agent.tasks_assigned.count : 0 %> task(s) assigned
+                  <%= assigned_columns.size %> column(s) ·
+                  <%= assigned_task_count %> task(s) assigned
                 </div>
+                <% if assigned_columns.any? %>
+                  <div class="text-xs text-content-muted mt-1.5 flex flex-wrap gap-1">
+                    <% assigned_columns.each do |col| %>
+                      <span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-bg-base border border-border rounded text-[10px]">
+                        <%= col.board.name %> · <%= col.name %><% if col.respond_to?(:webhook_enabled?) && col.webhook_enabled? %> · ⚡<% end %>
+                      </span>
+                    <% end %>
+                  </div>
+                <% end %>
               </div>
             </div>
             <div class="flex items-center gap-2">
