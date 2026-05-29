@@ -36,7 +36,6 @@
                 <% assigned_task_count = agent.respond_to?(:tasks_assigned) ? agent.tasks_assigned.count : 0 %>
                 <div class="text-xs text-content-muted mt-2 font-mono">
                   <%= agent.api_tokens.count %> token(s) ·
-                  <%= assigned_columns.size %> column(s) ·
                   <%= assigned_task_count %> task(s) assigned
                 </div>
                 <% if agent.respond_to?(:webhook_cron_id) && agent.webhook_cron_id.present? %>
