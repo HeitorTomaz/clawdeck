@@ -55,10 +55,10 @@ Rails.application.routes.draw do
   end
 
   resource :session, only: [:new, :create, :destroy]
-  resource :registration, only: [:new, :create]
+  # resource :registration, only: [:new, :create]  # disabled: invite-only deploy
   get "/auth/:provider/callback", to: "omniauth_callbacks#github", as: :omniauth_callback
   get "/auth/failure", to: "omniauth_callbacks#failure"
-  resources :passwords, param: :token
+  # resources :passwords, param: :token  # disabled: SMTP nao configurado
   resource :settings, only: [ :show, :update ], controller: "profiles" do
     post :regenerate_api_token
   end

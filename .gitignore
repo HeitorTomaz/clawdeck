@@ -48,3 +48,4 @@ tpush/
 
 # Claude Code worktrees + local state
 /.claude/
+*/.mcp.json

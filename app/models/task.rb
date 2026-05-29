@@ -26,6 +26,8 @@ class Task < ApplicationRecord
   after_update :record_update_activities
 
   # Webhook dispatch when task enters an agent-assigned column flagged for webhook.
+  # Fires on both create (initial drop into a column) and update (column move).
+  after_create_commit :enqueue_agent_webhook, if: :should_fire_webhook_on_create?
   after_update_commit :enqueue_agent_webhook, if: :should_fire_webhook?
 
   # Position management - acts_as_list functionality without the gem
@@ -214,6 +216,14 @@ class Task < ApplicationRecord
   def should_fire_webhook?
     saved_change_to_column_id? &&
       column&.webhook_enabled? &&
+      column.assigned_agent&.webhook_cron_id.present?
+  end
+
+  # On create, saved_change_to_column_id? is true (nil -> id), but the semantic
+  # check we want is simply "this task was just dropped into a webhook-enabled
+  # column owned by an agent". Mirrors should_fire_webhook? minus the change check.
+  def should_fire_webhook_on_create?
+    column&.webhook_enabled? &&
       column.assigned_agent&.webhook_cron_id.present?
   end
 
