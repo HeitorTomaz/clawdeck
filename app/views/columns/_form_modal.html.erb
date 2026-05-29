@@ -51,6 +51,31 @@
         </p>
       </div>
 
+      <% webhook_disabled_reason =
+           if column.assigned_agent.nil?
+             "Defina o agente atribuido (assigned agent) antes de habilitar o webhook."
+           elsif column.assigned_agent.webhook_cron_id.blank?
+             "O agente atribuido nao tem webhook_cron_id. Defina em Agents."
+           end
+      %>
+      <div>
+        <label class="flex items-start gap-2 text-sm text-content cursor-pointer <%= 'opacity-60 cursor-not-allowed' if webhook_disabled_reason %>"
+               <%= "title=\"#{webhook_disabled_reason}\"".html_safe if webhook_disabled_reason %>>
+          <%= form.check_box :webhook_enabled,
+              { class: "mt-0.5", disabled: webhook_disabled_reason.present? } %>
+          <span>
+            Disparar webhook do agente quando uma task entrar nesta coluna
+          </span>
+        </label>
+        <% if webhook_disabled_reason %>
+          <p class="mt-1 text-xs text-content-muted"><%= webhook_disabled_reason %></p>
+        <% else %>
+          <p class="mt-1 text-xs text-content-muted">
+            Invoca <code>cron.run</code> do OpenClaw configurado no agente.
+          </p>
+        <% end %>
+      </div>
+
       <div class="flex items-center justify-end gap-3 pt-2">
         <button type="button"
                 data-action="click->column-form-modal#close"

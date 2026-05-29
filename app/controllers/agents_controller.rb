@@ -62,6 +62,6 @@ class AgentsController < ApplicationController
   end
 
   def agent_params
-    params.require(:agent).permit(:name, :description)
+    params.require(:agent).permit(:name, :description, :webhook_cron_id)
   end
 end
