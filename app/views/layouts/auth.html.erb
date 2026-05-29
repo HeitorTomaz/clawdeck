@@ -9,11 +9,13 @@
     <meta name="application-name" content="ClawDeck">
     <meta name="mobile-web-app-capable" content="yes">
     <%# Theme colors for Safari and other browsers %>
-    <meta name="theme-color" content="#050810">
+    <meta name="theme-color" content="#f7f4ed">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-    <%# Fonts - Clash Display + Satoshi %>
-    <link href="https://api.fontshare.com/v2/css?f[]=clash-display@700,600,500&f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+    <%# Fonts - Instrument Sans (humanist, display + body) + JetBrains Mono %>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <%= yield :head %>
     <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
     <%= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
@@ -24,13 +26,13 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <%# Includes all stylesheet files in app/assets/stylesheets %>
-    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "tailwind", "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
     <%= render "application/plausible_analytics" %>
   </head>
-  <body class="h-screen overflow-hidden bg-bg-base p-2 font-body" data-controller="turbo-progress">
-    <%# Main content panel - full viewport with rounded corners, no sidebar %>
-    <div class="h-[calc(100vh-1rem)] flex flex-col shadow-sm bg-bg-surface rounded-3xl overflow-hidden">
+  <body class="h-screen overflow-hidden bg-bg-base p-2 font-sans text-content" data-controller="turbo-progress">
+    <%# Main content panel - full viewport with hairline border, cream throughout %>
+    <div class="h-[calc(100vh-1rem)] flex flex-col bg-bg-surface border border-[#eceae4] rounded-2xl overflow-hidden">
       <%# Simple navbar for auth pages %>
       <nav class="relative flex-shrink-0 z-50 flex items-center justify-between px-6 py-4">
         <%# Logo on the left %>

@@ -3,11 +3,15 @@ class HomeController < ApplicationController
     @user = current_user
     @boards = current_user.boards
 
-    # Today's tasks: due today + active tasks (up_next, in_progress)
+    # Active columns = anything that's NOT "Done". Names match the default 5-column set.
+    active_column_names = [ "Inbox", "Up Next", "In Progress", "In Review" ]
+
+    # Today's tasks: due today OR sitting in an "active work" column
     @today_tasks = current_user.tasks
-      .where("due_date = ? OR status IN (?)", Date.today, [1, 2]) # up_next=1, in_progress=2
+      .joins(:column)
+      .where("tasks.due_date = ? OR columns.name IN (?)", Date.today, [ "Up Next", "In Progress" ])
       .where(completed: false)
-      .includes(:board)
+      .includes(:board, :column)
       .reorder(position: :asc)
       .limit(10)
 
@@ -21,8 +25,8 @@ class HomeController < ApplicationController
 
     @all_today_tasks = @today_tasks + @completed_today
 
-    # Agent tasks currently being worked on
-    @agent_tasks_count = current_user.tasks.where(assigned_to_agent: true, completed: false).count
+    # Agent tasks currently being worked on (assigned to any Agent + not yet completed)
+    @agent_tasks_count = current_user.tasks.where.not(assigned_agent_id: nil).where(completed: false).count
 
     # Agent updates (last 24h)
     @agent_updates = TaskActivity
@@ -35,7 +39,6 @@ class HomeController < ApplicationController
       .limit(5)
 
     # Weekly stats — count tasks completed each day
-    # "done" can be tracked via "moved" action with new_value="done" or "completed" action
     week_start = Date.today.beginning_of_week(:monday)
     @week_stats = (0..6).map do |i|
       date = week_start + i.days
@@ -43,7 +46,7 @@ class HomeController < ApplicationController
         .joins(:task)
         .where(tasks: { user_id: current_user.id })
         .where(task_activities: { created_at: date.all_day })
-        .where("(task_activities.action = 'moved' AND task_activities.new_value = 'done') OR task_activities.action = 'completed'")
+        .where("(task_activities.action = 'moved' AND task_activities.new_value = 'Done') OR task_activities.action = 'completed'")
 
       {
         day: date.strftime("%a"),
@@ -53,10 +56,10 @@ class HomeController < ApplicationController
       }
     end
 
-    # Summary counts
+    # Summary counts (column-based)
     @completed_count = @week_stats.sum { |d| d[:you] + d[:agent] }
-    @in_progress_count = current_user.tasks.where(status: :in_progress, completed: false).count
-    @upcoming_count = current_user.tasks.where(status: [:inbox, :up_next], completed: false).count
+    @in_progress_count = current_user.tasks.joins(:column).where(columns: { name: "In Progress" }, completed: false).count
+    @upcoming_count = current_user.tasks.joins(:column).where(columns: { name: [ "Inbox", "Up Next" ] }, completed: false).count
     @completed_today_count = @completed_today.count
   end
 end

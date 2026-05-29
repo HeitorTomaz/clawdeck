@@ -19,6 +19,33 @@ Rails.application.routes.draw do
           patch :unassign
         end
       end
+
+      # Agent-scoped API. Auth via X-Agent-Token; current_agent resolves to
+      # an Agent record (not a User). Tasks/columns are scoped through the
+      # agent's owning user.
+      namespace :agent do
+        resources :tasks, only: [ :index, :show, :create, :update, :destroy ] do
+          collection do
+            get :next
+            get :pending_attention
+          end
+          member do
+            patch :complete
+            patch :claim
+            patch :unclaim
+            patch :assign
+            patch :unassign
+          end
+        end
+
+        resources :boards, only: [] do
+          resources :columns, only: [ :index, :show, :create, :update, :destroy ] do
+            collection do
+              post :reorder
+            end
+          end
+        end
+      end
     end
   end
 
@@ -36,9 +63,22 @@ Rails.application.routes.draw do
     post :regenerate_api_token
   end
 
+  # Agent management (web)
+  resources :agents do
+    post :regenerate_token, on: :member
+    resources :tokens, only: [ :destroy ], controller: "agent_tokens"
+  end
+
   # Boards (multi-board kanban views)
   resources :boards, only: [ :index, :show, :create, :update, :destroy ] do
+    get :list, on: :member
     patch :update_task_status, on: :member
+    patch :update_task_column, on: :member, action: :update_task_status
+    resources :columns, except: [ :index ] do
+      collection do
+        post :reorder
+      end
+    end
     resources :tasks, only: [ :show, :new, :create, :edit, :update, :destroy ], controller: "boards/tasks" do
       member do
         patch :assign

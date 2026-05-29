@@ -1,190 +1,233 @@
-# 🦞 ClawDeck
+# 🦞 ClawDeck (HeitorTomaz fork)
 
-**Open source mission control for your AI agents.**
+[![Ruby](https://img.shields.io/badge/Ruby-3.3.1-CC342D?logo=ruby&logoColor=white)](https://www.ruby-lang.org/)
+[![Rails](https://img.shields.io/badge/Rails-8.1-CC0000?logo=rubyonrails&logoColor=white)](https://rubyonrails.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Status](https://img.shields.io/badge/status-active%20fork%20%E2%80%94%20not%20tracking%20upstream-orange)]()
 
-ClawDeck is a kanban-style dashboard for managing AI agents powered by [OpenClaw](https://github.com/openclaw/openclaw). Track tasks, assign work to your agent, and collaborate asynchronously.
+**Open-source mission control for your AI agents — a kanban board where humans and bots share the same lanes.**
 
-> **Note:** The hosted version at clawdeck.io is shutting down May 30, 2026. This repo stays up — self-hosted installs keep working. If you're looking for an actively maintained alternative, check out [lst.so](https://lst.so), the project ClawDeck evolved into.
+ClawDeck is a Rails app that lets you organize work for AI agents (built on [OpenClaw](https://github.com/openclaw/openclaw) or anything else that can hit a REST API) the same way you'd manage a team on Trello or Linear. Boards hold columns, columns hold tasks, agents pull work, you watch progress stream in.
 
-## Get Started
-
-**Self-host**  
-Clone this repo and run your own instance. See [Self-Hosting](#self-hosting) below.
-
-**Contribute**  
-PRs welcome! See [CONTRIBUTING.md](CONTRIBUTING.md).
+This fork adds **per-board editable columns**, a first-class **Agent model** decoupled from `User`, and a **hashed agent token** for at-rest safety.
 
 ---
 
-## Features
+## 🤔 Why this fork?
 
-- **Kanban Boards** — Organize tasks across multiple boards
-- **Agent Assignment** — Assign tasks to your agent, track progress
-- **Activity Feed** — See what your agent is doing in real-time
-- **API Access** — Full REST API for agent integrations
-- **Real-time Updates** — Hotwire-powered live UI
+The original [clawdeckio/clawdeck](https://github.com/clawdeckio/clawdeck) shut down its hosted service on **May 30, 2026**. The upstream repo still exists but the maintainers' focus moved to [lst.so](https://lst.so).
 
-## How It Works
+This fork keeps the self-hostable core alive for people who liked the simple kanban-for-agents idea and want to:
 
-1. You create tasks and organize them on boards
-2. You assign tasks to your agent when ready
-3. Your agent polls for assigned tasks and works on them
-4. Your agent updates progress via the API (activity feed)
-5. You see everything in real-time
+- Run their own instance without depending on a hosted product.
+- Carry security patches (token hashing) that hadn't landed upstream.
+- Extend the data model for richer pipelines (dynamic columns, multiple agents per user).
 
-## Tech Stack
-
-- **Ruby** 3.3.1 / **Rails** 8.1
-- **PostgreSQL** with Solid Queue, Cache, and Cable
-- **Hotwire** (Turbo + Stimulus) + **Tailwind CSS**
-- **Authentication** via GitHub OAuth or email/password
+**There is no plan to PR back upstream** — the fork is maintained as a parallel project for as long as it's useful. **External PRs here are very welcome**, though. Open an issue first if it's a big change.
 
 ---
 
-## Self-Hosting
+## 🔀 What's different vs upstream
+
+| Area | Upstream | This fork |
+|---|---|---|
+| Agent token at rest | Plaintext `token` column | **SHA-256 `token_digest`** (raw token shown once on create) |
+| Columns per board | Fixed enum: `inbox / up_next / in_progress / in_review / done` | **Dynamic `Column` model**, add/rename/reorder/delete per board |
+| Agent identity | Implicit (1 agent per `User`, via `assigned_to_agent` bool) | First-class **`Agent` model**: `User has_many :agents`; tokens belong to an Agent |
+| Column ownership | n/a | Column may optionally have an **`assigned_agent`** (acts as that agent's queue) |
+| API filter | `?status=in_progress` | `?column_id=42` or `?column_name="In Review"` *(breaking change)* |
+
+> Status of changes: token hashing is **shipped**. The Agent + Column refactor is **in development** on `agent-columns`, executed in parallel by 3 sub-agents (models / controllers / views).
+
+---
+
+## 🧠 How it works
+
+### Core concepts
+
+- **User** — the human who logs in (Clerk or `LOCAL_AUTH_TOKEN`).
+- **Agent** — a named AI identity owned by a User. Holds API tokens. A User can have many.
+- **ApiToken** — bearer credential (`X-Agent-Token`) that authenticates *as an Agent*. Stored hashed.
+- **Board** — a kanban surface. Has many Columns.
+- **Column** — a stage on the board. Editable per-board; optionally pinned to a specific Agent.
+- **Task** — a card. Lives in exactly one Column; may have an `assigned_agent`.
+
+### Domain model
+
+```mermaid
+erDiagram
+    User ||--o{ Agent : "owns"
+    Agent ||--o{ ApiToken : "auths via"
+    User ||--o{ Board : "creates"
+    Board ||--o{ Column : "has (ordered)"
+    Column ||--o{ Task : "contains"
+    Agent ||--o{ Task : "assigned_agent (opt)"
+    Agent ||--o{ Column : "assigned_agent (opt)"
+```
+
+### Agent polling loop
+
+```mermaid
+sequenceDiagram
+    participant A as Agent (bot)
+    participant API as ClawDeck API
+    participant DB as Postgres
+    participant UI as Kanban UI
+
+    A->>API: GET /agent/boards/:id/tasks?column_name=Inbox
+    API->>DB: SELECT tasks WHERE column_id = ?
+    DB-->>API: [tasks]
+    API-->>A: 200 [tasks]
+    A->>A: do the work
+    A->>API: PATCH /agent/tasks/:id { column_id: 17 }
+    API->>DB: UPDATE tasks SET column_id = 17
+    DB-->>API: ok
+    API-->>UI: Turbo Stream broadcast
+    API-->>A: 200
+```
+
+---
+
+## 🚀 Quick start (local Docker)
 
 ### Prerequisites
-- Ruby 3.3.1
-- PostgreSQL
-- Bundler
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Compose v2)
 
-### Setup
+### Run it
+
 ```bash
-git clone https://github.com/clawdeckio/clawdeck.git
+git clone https://github.com/HeitorTomaz/clawdeck.git
 cd clawdeck
+cp .env.example .env   # then edit — see vars below
+docker compose -f compose.local.yml up -d
+```
+
+Open <http://localhost:3001> and paste your `LOCAL_AUTH_TOKEN` to sign in as the admin user.
+
+### Required env vars
+
+| Var | Notes |
+|---|---|
+| `LOCAL_AUTH_TOKEN` | Bearer token for the local admin user. **≥50 chars**, random. |
+| `POSTGRES_PASSWORD` | Password for the Postgres container. |
+| `SECRET_KEY_BASE` | Rails secret. Generate with `bin/rails secret`. |
+| `CLERK_*` *(optional)* | Set if you want Clerk-based auth instead of `LOCAL_AUTH_TOKEN`. |
+
+### Useful commands
+
+```bash
+# Tail logs
+docker compose -f compose.local.yml logs -f web
+
+# Rails console
+docker compose -f compose.local.yml exec web bin/rails console
+
+# Run migrations
+docker compose -f compose.local.yml exec web bin/rails db:migrate
+
+# Stop
+docker compose -f compose.local.yml down
+```
+
+---
+
+## 🔐 Auth model
+
+ClawDeck has **two distinct auth surfaces**:
+
+### User auth (browser / dashboard)
+- **Local dev:** `Authorization: Bearer <LOCAL_AUTH_TOKEN>` on the first hit, then session cookie.
+- **Production:** [Clerk](https://clerk.com) (set `CLERK_PUBLISHABLE_KEY` + `CLERK_SECRET_KEY`).
+
+### Agent auth (REST API for bots)
+- Header: `X-Agent-Token: <raw-token>`
+- Server hashes the incoming token (SHA-256) and looks it up in `api_tokens.token_digest`.
+- Resolves to an **`Agent`** (not a User). `agent.user` gives you the owner.
+
+### Getting an agent token
+
+1. Sign in to the dashboard.
+2. Go to **Profile → Agents**.
+3. Create an Agent (give it a name, e.g. `"scraper-bot"`).
+4. Click **Create token** — the raw token is shown **once**. Copy it now; only the hash is stored.
+5. Export it where your bot runs: `export CLAWDECK_TOKEN=...`
+
+---
+
+## 📡 API quick reference (agent endpoints)
+
+Base URL: `http://localhost:3001/api/v1/agent`
+
+All requests require `X-Agent-Token: <token>`.
+
+```bash
+# List columns on a board
+curl -H "X-Agent-Token: $CLAWDECK_TOKEN" \
+  http://localhost:3001/api/v1/agent/boards/1/columns
+
+# List tasks in a specific column (by name)
+curl -H "X-Agent-Token: $CLAWDECK_TOKEN" \
+  "http://localhost:3001/api/v1/agent/boards/1/tasks?column_name=Inbox"
+
+# Create a task
+curl -X POST -H "X-Agent-Token: $CLAWDECK_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Research topic X","column_id":12}' \
+  http://localhost:3001/api/v1/agent/boards/1/tasks
+
+# Move a task to a new column
+curl -X PATCH -H "X-Agent-Token: $CLAWDECK_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"column_name":"In Review","activity_note":"Done, ready for review"}' \
+  http://localhost:3001/api/v1/agent/tasks/42
+
+# Heartbeat (mark the agent alive)
+curl -X POST -H "X-Agent-Token: $CLAWDECK_TOKEN" \
+  http://localhost:3001/api/v1/agent/heartbeat
+```
+
+> Breaking change vs upstream: `?status=X` is gone. Use `?column_id=` or `?column_name=`.
+
+---
+
+## 🤝 Contributing
+
+PRs and issues are welcome on this fork.
+
+### Dev setup (without Docker)
+
+```bash
 bundle install
-bin/rails db:prepare
-bin/dev
+bin/setup
+bin/dev   # runs Rails + Tailwind + Solid Queue
 ```
 
-Visit `http://localhost:3000`
-
-### Authentication Setup
-
-ClawDeck supports two authentication methods:
-
-1. **Email/Password** — Works out of the box
-2. **GitHub OAuth** — Optional, recommended for production
-
-#### GitHub OAuth Setup
-
-1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
-2. Click **New OAuth App**
-3. Fill in:
-   - **Application name:** ClawDeck
-   - **Homepage URL:** Your domain
-   - **Authorization callback URL:** `https://yourdomain.com/auth/github/callback`
-4. Add credentials to environment:
+### Tests & lint
 
 ```bash
-GITHUB_CLIENT_ID=your_client_id
-GITHUB_CLIENT_SECRET=your_client_secret
+bin/rails test           # minitest, models + controllers
+bin/rails test:system    # Capybara system tests
+bin/rubocop              # style
+bin/brakeman             # security scan
+bundle exec bundler-audit check --update
 ```
 
-### Running Tests
-```bash
-bin/rails test
-bin/rails test:system
-bin/rubocop
-```
+CI runs all of the above on every PR.
+
+### Branch model
+- `main` — fork's stable line.
+- `agent-columns` — current dev branch for the Agent + Column refactor.
+- Feature branches: `feat/<short-name>`, opened against the active dev branch.
 
 ---
 
-## API
+## 📜 License
 
-ClawDeck exposes a REST API for agent integrations. Get your API token from Settings.
+MIT — same as upstream. See [LICENSE](LICENSE).
 
-### Authentication
+## 🙏 Credits
 
-Include your token in every request:
-```
-Authorization: Bearer YOUR_TOKEN
-```
+Originally built by [mx.works](https://mx.works) and the OpenClaw community as [clawdeckio/clawdeck](https://github.com/clawdeckio/clawdeck). Huge thanks for open-sourcing it — this fork wouldn't exist without that work.
 
-Include agent identity headers:
-```
-X-Agent-Name: Maxie
-X-Agent-Emoji: 🦊
-```
-
-### Boards
-
-```bash
-# List boards
-GET /api/v1/boards
-
-# Get board
-GET /api/v1/boards/:id
-
-# Create board
-POST /api/v1/boards
-{ "name": "My Project", "icon": "🚀" }
-
-# Update board
-PATCH /api/v1/boards/:id
-
-# Delete board
-DELETE /api/v1/boards/:id
-```
-
-### Tasks
-
-```bash
-# List tasks (with filters)
-GET /api/v1/tasks
-GET /api/v1/tasks?board_id=1
-GET /api/v1/tasks?status=in_progress
-GET /api/v1/tasks?assigned=true    # Your work queue
-
-# Get task
-GET /api/v1/tasks/:id
-
-# Create task
-POST /api/v1/tasks
-{ "name": "Research topic X", "status": "inbox", "board_id": 1 }
-
-# Update task (with optional activity note)
-PATCH /api/v1/tasks/:id
-{ "status": "in_progress", "activity_note": "Starting work on this" }
-
-# Delete task
-DELETE /api/v1/tasks/:id
-
-# Complete task
-PATCH /api/v1/tasks/:id/complete
-
-# Assign/unassign to agent
-PATCH /api/v1/tasks/:id/assign
-PATCH /api/v1/tasks/:id/unassign
-```
-
-### Task Statuses
-- `inbox` — New, not prioritized
-- `up_next` — Ready to be assigned
-- `in_progress` — Being worked on
-- `in_review` — Done, needs review
-- `done` — Complete
-
-### Priorities
-`none`, `low`, `medium`, `high`
-
----
-
-## Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-## License
-
-MIT License — see [LICENSE](LICENSE) for details.
-
-## Links
-
-- 🐙 **GitHub:** [clawdeckio/clawdeck](https://github.com/clawdeckio/clawdeck)
-- 💬 **Discord:** [Join the community](https://discord.gg/bJQrNasMC6)
-- 📝 **Story:** [How ClawDeck went from weekend project to real users](https://mx.works/notes/clawdeck-is-taking-off/)
-- 🔜 **What it evolved into:** [lst.so](https://lst.so)
-
----
-
-Built with 🦞 by [mx.works](https://mx.works) and the OpenClaw community.
+If you're looking for the maintainers' new project, check out [lst.so](https://lst.so).

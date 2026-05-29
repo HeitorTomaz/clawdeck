@@ -1,0 +1,11 @@
+<% content_for :title, "Edit agent" %>
+
+<div class="space-y-6 mt-12 max-w-md mx-auto px-4">
+  <div>
+    <h2 class="text-2xl font-semibold tracking-[-0.025em] text-content">Edit agent</h2>
+  </div>
+
+  <div class="bg-bg-elevated border border-border rounded-xl p-6">
+    <%= render "agents/form", agent: @agent, submit_label: "Save changes", url: agent_path(@agent), method: :patch %>
+  </div>
+</div>

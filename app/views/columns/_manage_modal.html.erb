@@ -1,0 +1,49 @@
+<%#
+  "Manage columns" modal — drag-ordered list with rename/delete/agent chips,
+  plus a button to add a new column.
+%>
+<div id="manage-columns-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+  <div class="absolute inset-0 bg-black/30"
+       onclick="document.getElementById('manage-columns-modal').classList.add('hidden')"></div>
+
+  <div class="relative bg-bg-elevated border border-border rounded-2xl w-full max-w-lg mx-4 overflow-hidden"
+       style="box-shadow: 0 12px 40px rgba(0,0,0,0.12);">
+    <div class="px-5 py-4 border-b border-border flex items-center justify-between">
+      <span class="text-base font-semibold text-content">Manage columns</span>
+      <button type="button"
+              onclick="document.getElementById('manage-columns-modal').classList.add('hidden')"
+              class="p-2 rounded-md text-content-muted hover:text-content hover:bg-bg-hover transition-colors cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="p-5 space-y-4">
+      <p class="text-sm text-content-muted">Drag to reorder. Columns with tasks cannot be deleted until you move or remove their tasks.</p>
+
+      <ul id="manage-columns-list"
+          class="flex flex-col gap-1.5 list-none m-0 p-0"
+          data-controller="sortable-columns"
+          data-sortable-columns-url-value="<%= reorder_board_columns_path(@board) %>">
+        <% @board.columns.ordered.each do |column| %>
+          <%= render "columns/manage_row", column: column %>
+        <% end %>
+      </ul>
+
+      <div class="pt-3 border-t border-border flex items-center justify-between">
+        <%= link_to new_board_column_path(@board),
+            data: { turbo_frame: "column_form_modal" },
+            class: "inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-content text-content-inverse btn-inset-shadow hover:opacity-90 text-sm font-medium transition-opacity cursor-pointer" do %>
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M14 8H2M8 2V14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          Add column
+        <% end %>
+        <button type="button"
+                onclick="document.getElementById('manage-columns-modal').classList.add('hidden')"
+                class="px-4 py-2 text-sm font-medium rounded-md border border-[rgba(28,28,28,0.4)] text-content hover:bg-bg-hover transition-colors cursor-pointer">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,31 +1,55 @@
-<%# Agent assignment button for task panel %>
-<% agent_connected = current_user.agent_last_active_at.present? %>
-<% agent_name = current_user.agent_name || "Agent" %>
-<% agent_emoji = agent_connected ? (current_user.agent_emoji || "🦞") : "🦞" %>
+<%# Legacy agent assignment partial. Updated to use the Agent model.
+   Renders a small picker that PATCHes the task with the chosen agent_id. %>
+<% user_agents = current_user.respond_to?(:agents) ? current_user.agents.order(:name) : [] %>
+<% assigned = task.respond_to?(:assigned_agent) ? task.assigned_agent : nil %>
 
-<div id="task_<%= task.id %>_agent_assignment" class="flex items-center justify-between pb-4 -mt-2">
+<div id="task_<%= task.id %>_agent_assignment" class="flex items-center justify-between pb-4 -mt-2" data-controller="dropdown">
   <span class="text-sm text-content-muted">Agent</span>
 
-  <% if task.assigned_to_agent? %>
-    <%= button_to unassign_board_task_path(board, task),
-        method: :patch,
-        class: "cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium bg-accent/20 text-accent hover:bg-accent/30 transition-colors",
-        title: "Unassign from #{agent_name}" do %>
-      <span><%= agent_emoji %></span>
-      <span>Assigned</span>
-    <% end %>
-  <% elsif agent_connected %>
-    <%= button_to assign_board_task_path(board, task),
-        method: :patch,
-        class: "cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium bg-bg-elevated hover:bg-bg-hover text-content-secondary transition-colors",
-        title: "Assign to #{agent_name}" do %>
-      <span><%= agent_emoji %></span>
-      <span>Assign</span>
+  <% if user_agents.empty? %>
+    <%= link_to new_agent_path,
+        class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium bg-bg-base border border-border text-content-muted hover:text-content transition-colors" do %>
+      <span>🤖</span>
+      <span>Create an agent</span>
     <% end %>
   <% else %>
-    <span class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs text-content-muted bg-bg-elevated cursor-not-allowed" title="Connect an agent in Settings">
-      <span>🦞</span>
-      <span>No agent</span>
-    </span>
+    <div class="relative">
+      <button type="button"
+              data-dropdown-target="button"
+              data-action="click->dropdown#toggle"
+              aria-expanded="false"
+              class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors <%= assigned ? 'bg-[#6d4eb8]/10 text-[#6d4eb8] border border-[#6d4eb8]/25' : 'bg-bg-base text-content-secondary border border-border hover:bg-bg-hover' %>">
+        <% if assigned %>
+          <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#6d4eb8]/20 text-[9px] font-semibold text-[#6d4eb8]"><%= assigned.name.first.to_s.upcase %></span>
+          <span><%= assigned.name %></span>
+        <% else %>
+          <span>🤖</span>
+          <span>Assign</span>
+        <% end %>
+      </button>
+      <div data-dropdown-target="menu"
+           class="hidden absolute right-0 top-full mt-1 w-48 p-1 rounded-lg border border-border bg-bg-elevated z-30"
+           style="box-shadow:0 12px 40px rgba(0,0,0,0.12)">
+        <% user_agents.each do |agent| %>
+          <%= button_to board_task_path(board, task),
+              method: :patch,
+              params: { task: { assigned_agent_id: agent.id } },
+              data: { action: "click->dropdown#close" },
+              class: "block w-full text-left px-2.5 py-2 rounded-md text-sm font-normal #{assigned&.id == agent.id ? 'bg-bg-hover text-content' : 'text-content-secondary hover:bg-bg-hover'} transition-colors" do %>
+            <%= agent.name %>
+          <% end %>
+        <% end %>
+        <% if assigned %>
+          <div class="h-px bg-border my-1"></div>
+          <%= button_to board_task_path(board, task),
+              method: :patch,
+              params: { task: { assigned_agent_id: "" } },
+              data: { action: "click->dropdown#close" },
+              class: "block w-full text-left px-2.5 py-2 rounded-md text-sm font-normal text-content-muted hover:bg-bg-hover transition-colors" do %>
+            Unassign
+          <% end %>
+        <% end %>
+      </div>
+    </div>
   <% end %>
 </div>

@@ -1,0 +1,47 @@
+<%= form_with model: agent, url: url, method: method, class: "space-y-4" do |form| %>
+  <% if agent.errors.any? %>
+    <div class="p-3 bg-[#b3261e]/8 border border-[#b3261e]/25 text-[#b3261e] text-sm rounded-md">
+      <ul class="list-disc list-inside">
+        <% agent.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <label class="block text-sm font-medium text-content mb-1.5">Name</label>
+    <%= form.text_field :name,
+        required: true,
+        autofocus: true,
+        placeholder: "e.g., Research bot, QA agent",
+        class: "w-full px-3 py-2 text-sm bg-bg-base border border-border rounded-md focus-soft text-content placeholder:text-content-muted" %>
+  </div>
+
+  <div>
+    <label class="block text-sm font-medium text-content mb-1.5">Description (optional)</label>
+    <%= form.text_area :description,
+        rows: 3,
+        placeholder: "What does this agent do?",
+        class: "w-full px-3 py-2 text-sm bg-bg-base border border-border rounded-md focus-soft text-content placeholder:text-content-muted resize-y" %>
+  </div>
+
+  <fieldset class="border-t border-border pt-4">
+    <legend class="text-sm font-medium text-content mb-2">Webhook (optional)</legend>
+    <label class="block text-sm font-medium text-content mb-1.5">OpenClaw cron ID</label>
+    <%= form.text_field :webhook_cron_id,
+        placeholder: "e.g., 1fcd1b6f-082d-4264-81af-38ba49331f24",
+        class: "w-full px-3 py-2 text-sm bg-bg-base border border-border rounded-md focus-soft text-content placeholder:text-content-muted font-mono" %>
+    <p class="mt-1 text-xs text-content-muted">
+      UUID do cron a invocar quando uma task entrar em uma coluna deste agente.
+      Veja <code>openclaw cron list</code> no servidor OpenClaw.
+    </p>
+  </fieldset>
+
+  <div class="flex items-center justify-end gap-3 pt-2">
+    <%= link_to "Cancel", agents_path,
+        class: "px-4 py-2 text-sm font-medium rounded-md border border-[rgba(28,28,28,0.4)] text-content hover:bg-bg-hover transition-colors cursor-pointer" %>
+    <%= form.submit submit_label,
+        class: "px-4 py-2 text-sm font-medium rounded-md bg-content text-content-inverse btn-inset-shadow hover:opacity-90 transition-opacity cursor-pointer" %>
+  </div>
+<% end %>

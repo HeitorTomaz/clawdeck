@@ -5,7 +5,9 @@ class Api::V1::TasksControllerTest < ActionDispatch::IntegrationTest
     @user = users(:one)
     @api_token = api_tokens(:one)
     @task = tasks(:one)
-    @auth_header = { "Authorization" => "Bearer #{@api_token.token}" }
+    # Fixture raw token — digest stored in fixtures/api_tokens.yml is SHA256 of this value
+    @raw_token = "test_token_one_abc123def456"
+    @auth_header = { "Authorization" => "Bearer #{@raw_token}" }
   end
 
   # Authentication tests
@@ -43,14 +45,22 @@ class Api::V1::TasksControllerTest < ActionDispatch::IntegrationTest
     assert tasks.all? { |t| t["priority"] == "high" }
   end
 
-  test "index filters by status" do
-    @task.update!(status: :in_progress)
-
-    get api_v1_tasks_url(status: "in_progress"), headers: @auth_header
+  test "index filters by column_id" do
+    column = @task.column
+    get api_v1_tasks_url(column_id: column.id), headers: @auth_header
     assert_response :success
 
     tasks = response.parsed_body
-    assert tasks.all? { |t| t["status"] == "in_progress" }
+    assert tasks.all? { |t| t["column_id"] == column.id }
+  end
+
+  test "index filters by column_name" do
+    column = @task.column
+    get api_v1_tasks_url(column_name: column.name), headers: @auth_header
+    assert_response :success
+
+    tasks = response.parsed_body
+    assert tasks.all? { |t| t["column_name"] == column.name }
   end
 
   test "index returns task attributes" do
@@ -62,16 +72,19 @@ class Api::V1::TasksControllerTest < ActionDispatch::IntegrationTest
     assert task["name"].present?
     assert task.key?("priority")
     assert task.key?("completed")
-    assert task.key?("status")
+    assert task.key?("column_id")
+    assert task.key?("column_name")
+    assert task.key?("assigned_agent")
     assert task["created_at"].present?
     assert task["updated_at"].present?
   end
 
   # Create tests
   test "create creates new task" do
+    column = @task.column
     assert_difference "Task.count", 1 do
       post api_v1_tasks_url,
-           params: { task: { name: "New Task", priority: "high", status: "inbox" } },
+           params: { task: { name: "New Task", priority: "high", column_id: column.id } },
            headers: @auth_header
     end
 
@@ -80,7 +93,7 @@ class Api::V1::TasksControllerTest < ActionDispatch::IntegrationTest
     task = response.parsed_body
     assert_equal "New Task", task["name"]
     assert_equal "high", task["priority"]
-    assert_equal "inbox", task["status"]
+    assert_equal column.id, task["column_id"]
   end
 
   test "create returns errors for invalid task" do

@@ -1,0 +1,14 @@
+one_primary:
+  user: one
+  name: Primary
+  description: Default agent for user one
+
+two_primary:
+  user: two
+  name: Primary
+  description: Default agent for user two
+
+one_secondary:
+  user: one
+  name: Researcher
+  description: A second agent for user one (used for uniqueness tests)

@@ -1,0 +1,4 @@
+<%= turbo_frame_tag "column_form_modal" do %>
+  <%= render "columns/form_modal", column: @column, title: "Add column", submit_label: "Create column",
+      url: board_columns_path(@board), method: :post %>
+<% end %>

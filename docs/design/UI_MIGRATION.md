@@ -1,209 +1,79 @@
-# ClawDeck UI Migration Plan
-### From current UI → Design System v2
+# ClawDeck UI Migration — Cockpit → Cream
+
+The system moved from a high-contrast cockpit aesthetic (pure-black canvas, Saira Condensed UPPERCASE display, sharp 0-radius rectangles, tricolor BMW stripe) to the current warm humanist system: parchment cream canvas, Instrument Sans throughout, rounded corners, hairline `#eceae4` borders.
+
+> Token spec: `DESIGN.md` (repo root).
+> Component spec: `DESIGN_SYSTEM.md` (this folder).
 
 ---
 
-## Context
+## What changed at the token level
 
-ClawDeck is a Rails app with Tailwind CSS. The current UI works but needs to be updated to match the new design system defined in `DESIGN_SYSTEM.md`. Two reference prototypes exist as React files:
+| Token | Old (cockpit) | New (cream) |
+|---|---|---|
+| `--color-bg-base` | `#000000` | **`#f7f4ed`** |
+| `--color-bg-surface` | `#141414` | `#f7f4ed` |
+| `--color-bg-card` | `#1f1f1f` | `#f7f4ed` |
+| `--color-bg-elevated` | `#262626` | `#fcfbf8` |
+| `--color-content` | `#ffffff` | **`#1c1c1c`** |
+| `--color-content-secondary` | `#bbbbbb` | `rgba(28,28,28,0.82)` |
+| `--color-border` | `#3a3a3a` | **`#eceae4`** |
+| `--color-border-hover` | `#5c5c5c` | `rgba(28,28,28,0.4)` |
+| Display font | Saira Condensed 800 UPPERCASE | **Instrument Sans 600** |
+| Body font | Saira 300 (Light) | **Instrument Sans 400** |
+| Default radius | 0px | **6px (buttons), 12px (cards)** |
+| Accent | Tricolor `#0066b1 / #1c69d4 / #e22718` | Charcoal `#1c1c1c` (dark inset shadow) |
+| Project red | `#e22718` | `#b3261e` |
 
-- `clawdeck-home-v4.jsx` — the target home screen
-- `clawdeck-board-v3.jsx` — the target board screen with card detail panel
-
-These are NOT to be used as React components. They are **visual references** for how the final ERB + Tailwind + Stimulus implementation should look and behave.
-
----
-
-## Before You Start
-
-1. Read `DESIGN_SYSTEM.md` thoroughly — it has every token, color, spacing value, and component spec.
-2. Read both `.jsx` reference files to understand the layout, interactions, and data flow.
-3. Audit the current codebase: find all views, partials, Stimulus controllers, and Tailwind config.
-4. Do NOT create a separate design system gem or component library. Apply changes directly to existing views and partials.
-
----
-
-## Phase 1: Foundation (Do First)
-
-### 1.1 Tailwind Config
-Update `tailwind.config.js`:
-- Set font-family to Plus Jakarta Sans
-- Add custom colors for all bg layers (`base`, `surface`, `elevated`, `card`)
-- Add animation keyframes (`fadeUp`, `slideIn`, `dropIn`, `cmdIn`, `pulse`)
-- Add animation utilities
-- Extend border-radius if needed
-
-### 1.2 Application Layout
-Update `application.html.erb`:
-- Add Google Fonts link for Plus Jakarta Sans
-- Set body to `bg-[#0c0c0f] text-[#e0e0e0] font-sans`
-- Add custom CSS for scrollbar styling, selection color (`::selection { background: #fbbf24; color: #161619; }`)
-- Add the animation keyframes to the stylesheet
-
-### 1.3 Shared Navbar
-Create or update `_navbar.html.erb`:
-- Full-width, 52px height, flex between left/center/right
-- Left: board switcher dropdown (Stimulus controller)
-- Center: board stats (inbox count, in-progress count)
-- Right: user avatar dropdown (Stimulus controller)
-
-### 1.4 Dropdown Stimulus Controller
-Create `dropdown_controller.js`:
-- Handles open/close toggle
-- Click-outside-to-close
-- ESC to close
-- Works for board switcher, user menu, status dropdown, and any future dropdown
+Utilitários removidos: `.tricolor-stripe`, `.tricolor-stripe-vertical`, `.label-uppercase`.
+Utilitários adicionados: `.btn-inset-shadow`, `.focus-soft`.
 
 ---
 
-## Phase 2: Board View
+## Migration order (when porting a view)
 
-### 2.1 Board Layout
-Update board `show.html.erb`:
-- Background: `#161619`
-- Horizontal flex layout for columns with overflow scroll
-- Each column: min-width 220px, flex-shrink-0
-
-### 2.2 Column Component
-Each column has:
-- Header: colored dot + label + card count badge
-- Card list: vertical stack with gap
-- Footer: "+ Add a card" ghost button
-
-### 2.3 Card Partial
-Update `_card.html.erb`:
-- Background `#1e1e22`, border `rgba(255,255,255,0.04)`, border-radius 14px
-- Title: 13.5px, bold
-- Bottom row: project pill (colored) + subtask fraction + agent dot
-- NO left color strip
-- Hover: border brightens
-- Click: opens detail panel
-- Draggable (data attributes for SortableJS)
-
-### 2.4 Drag & Drop
-Create `drag_controller.js`:
-- Use SortableJS for column-to-column card movement
-- Dragging state: card opacity 0.4
-- Drop: PATCH request to update card column, optimistic UI update
+1. **Audit dark literals.** Search for `#000000`, `#0d0d0d`, `#1a1a1a`, `#141414`, `#1f1f1f`, `#262626`, `#3a3a3a`, `#3c3c3c`, `#7e7e7e`, `#bbbbbb`. Mapear para os equivalentes cream (ver tabela acima).
+2. **Drop atmospheric chrome.** Replace `bg-white/[0.04]`, `border-white/[0.08]` por sólidos (`bg-bg-elevated`, `border-border`).
+3. **Round corners.** Adicionar `rounded-md` (6px) em botões/inputs, `rounded-xl` (12px) em cards, `rounded-full` em chips/dots. Remover `style="border-radius:0"`.
+4. **Demote headlines.** Trocar `font-display font-extrabold uppercase tracking-tight` por `font-semibold tracking-[-0.025em]`. Sentence case.
+5. **Heavier body.** Body sai de `font-light` (300) para `font-normal` (400). Buttons/card titles `font-medium` (500).
+6. **CTAs invert.** Primary action passa a ser `bg-content text-content-inverse rounded-md btn-inset-shadow` (charcoal com inset shadow). Sem uppercase, sem letter-spacing extra.
+7. **Strip the stripe.** Remover qualquer `<div class="tricolor-stripe"></div>`.
+8. **Soft focus.** Inputs ganham `.focus-soft` em vez de `border-white` no focus.
 
 ---
 
-## Phase 3: Card Detail Panel
+## Arquivos migrados na passagem Cockpit → Cream
 
-### 3.1 Panel Structure
-Create `_card_detail.html.erb` and `detail_panel_controller.js`:
-- Fixed right panel, 400px wide, full height
-- Background: `#1a1a1e`
-- Backdrop overlay: `rgba(0,0,0,0.4)`, click to close
-- Slide-in animation from right
+- `app/assets/tailwind/application.css` — `@theme` reescrito, utilitários novos.
+- `app/views/layouts/application.html.erb` — fontes Instrument Sans, body cream.
+- `app/views/layouts/landing.html.erb` — idem.
+- `app/views/layouts/admin.html.erb` — Plus Jakarta Sans → Instrument Sans.
+- `app/views/layouts/auth.html.erb` — Clash Display/Satoshi → Instrument Sans.
+- `app/views/shared/_navbar.html.erb` — chrome cream, remove Discord, GitHub aponta para `HeitorTomaz/clawdeck`.
+- `app/views/application/_navbar.html.erb` — idem.
+- `app/views/shared/_filter_bar.html.erb` — chips pill cream.
+- `app/views/shared/_command_bar.html.erb`, `_new_board_modal.html.erb`, `_task_activities.html.erb`.
+- `app/views/application/_delete_modal.html.erb`.
+- `app/views/boards/show.html.erb`, `list.html.erb`, `_header.html.erb`, `_column.html.erb`, `_task_card.html.erb`.
+- `app/views/boards/tasks/new.html.erb`, `show.html.erb`, `_panel.html.erb`, `_agent_assignment.html.erb`, `_subtasks.html.erb`.
+- `app/views/agents/index.html.erb`, `new.html.erb`, `edit.html.erb`.
+- `app/views/sessions/new.html.erb`, `passwords/new.html.erb`, `passwords/edit.html.erb`, `registrations/new.html.erb`, `profiles/show.html.erb`.
+- `app/views/home/show.html.erb`, `pages/home.html.erb`.
+- `app/views/columns/_manage_modal.html.erb`, `columns/_form_modal.html.erb`.
+- `app/helpers/application_helper.rb` — `board_hex_color` / `activity_icon_bg` ajustados para paleta cream.
 
-### 3.2 Panel Sections (top to bottom)
-1. **Header:** Status pill showing current column + close button
-2. **Title:** 20px extrabold
-3. **Notes:** textarea, auto-save on change
-4. **Details section:**
-   - Status dropdown (column picker)
-   - Priority dots (4 levels)
-   - Agent toggle (assign/unassign)
-5. **Agent banner** (conditional)
-6. **Subtasks** with progress bar and checkboxes
-7. **Activity feed** with timeline
-
-### 3.3 Priority Picker
-Create `priority_controller.js`:
-- 4 buttons with increasing dots
-- Click to set priority
-- PATCH request to update
-- Active button gets colored background + border
-
-### 3.4 Status Dropdown (in detail panel)
-Reuse the dropdown Stimulus controller.
-- Trigger: dot + column name + chevron
-- Menu: list of all columns, active gets checkmark
-- On select: PATCH to move card, close dropdown
-
-### 3.5 Activity Feed
-- Rendered server-side from card activity log
-- Each entry: colored circle icon + description + timestamp
-- Vertical line connector between entries
-- Icon color by type: blue=created, purple=moved, green=priority, amber=agent
+Protótipos JSX removidos (`docs/design/clawdeck-board-v3.jsx`, `clawdeck-home-v4.jsx`).
 
 ---
 
-## Phase 4: Home View
+## Verificação pós-migração
 
-### 4.1 Home Layout
-Update home `show.html.erb`:
-- Background: `#0c0c0f`
-- Centered column, max-width 680px
-- Greeting: "Good morning, {name}" — 28px, extrabold
-- Subtitle: task count summary
-
-### 4.2 Today's Tasks
-- Card list with checkboxes
-- Each card: checkbox + title + time label + project pill + agent indicator
-- Checkbox: circular, 18px, project-colored fill on complete
-
-### 4.3 Activity Chart
-- Stacked bar chart: You (red) vs Agent (amber)
-- 7 days, today highlighted
-- Pure HTML/CSS bars (no chart library needed)
-- Summary row below: completed / in progress / upcoming
-- Legend: colored dots with counts
-
-### 4.4 Agent Updates
-- Card with amber accent
-- List of recent agent activity lines with timestamps
-
-### 4.5 Nudges
-- Card with suggestions
-- Each nudge: text + action button
-
----
-
-## Phase 5: Command Bar
-
-### 5.1 Command Bar
-Create `_command_bar.html.erb` and `command_bar_controller.js`:
-- ⌘K / Ctrl+K to toggle
-- Centered floating bar, 560px wide
-- Background: `#1e1e22`, border-radius 16px
-- Backdrop overlay
-- Search mode + Agent chat mode (tab toggle)
-- ESC to close
-
----
-
-## Phase 6: Polish
-
-### 6.1 Animations
-- Dropdown menus: `dropIn` animation (120ms)
-- Detail panel: `slideIn` animation (200ms)
-- Command bar: `cmdIn` animation (200ms)
-- Cards: `fadeUp` stagger on page load
-
-### 6.2 Hover States
-- Cards: border brightens on hover
-- Dropdown items: subtle bg on hover
-- Buttons: appropriate hover feedback
-
-### 6.3 Selection & Focus
-- `::selection` color: amber bg, dark text
-- Focus rings: subtle, matching component context
-
-### 6.4 Responsive
-- Home: already single-column centered
-- Board: horizontal scroll on smaller screens
-- Detail panel: full-screen overlay on mobile (< 768px)
-- Nav: adapt for mobile (bottom nav eventually)
-
----
-
-## Notes
-
-- Every color, spacing, and font value is documented in `DESIGN_SYSTEM.md`. Reference it.
-- The `.jsx` files are REFERENCE ONLY — do not install React. Translate patterns to ERB + Stimulus + Turbo.
-- Use Turbo Frames for partial page updates (card detail loading, card state changes).
-- Use Turbo Streams for real-time agent updates if websockets are set up.
-- All state changes should be optimistic — update DOM immediately, then send PATCH/POST.
-- Test on dark backgrounds only. Light mode is future work.
+1. `bin/dev` ou `bin/rails s`, navegar pela view.
+2. Canvas é cream (`#f7f4ed`) — não `#000000`.
+3. h1/h2 em Instrument Sans 600 sentence-case.
+4. Corpo em Instrument Sans 400.
+5. Cantos arredondados (`rounded-md`, `rounded-xl`, `rounded-full` apenas).
+6. Bordas são hairlines `#eceae4` ou interativa `rgba(28,28,28,0.4)`.
+7. Seleção (`::selection`) destaca em charcoal `#1c1c1c` sobre `#fcfbf8`.
+8. Botão primário tem inset shadow (DevTools mostra `.btn-inset-shadow`).

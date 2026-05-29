@@ -8,11 +8,13 @@
     <meta name="apple-mobile-web-app-title" content="ClawDeck">
     <meta name="application-name" content="ClawDeck">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#161619">
+    <meta name="theme-color" content="#f7f4ed">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-    <%# Font — Plus Jakarta Sans %>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <%# Fonts — Instrument Sans (humanist sans, display + body) + JetBrains Mono %>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <%= yield :head %>
     <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
     <%= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
@@ -23,11 +25,11 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <%# Includes all stylesheet files in app/assets/stylesheets %>
-    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "tailwind", "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
     <%= render "application/plausible_analytics" %>
   </head>
-  <body class="h-screen overflow-hidden bg-[#161619] text-[#bbb] font-sans" data-controller="turbo-progress">
+  <body class="h-screen overflow-hidden bg-bg-base text-content font-sans" data-controller="turbo-progress">
     <% if @board_page %>
       <%# Board page - full screen, no wrapper %>
       <div class="h-screen flex flex-col bg-bg-base">

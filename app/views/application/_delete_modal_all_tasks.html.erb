@@ -11,15 +11,15 @@
 <!-- Backdrop -->
 <div data-delete-confirm-all-tasks-target="backdrop"
      data-action="click->delete-confirm-all-tasks#closeOnBackdrop"
-     class="hidden opacity-0 fixed inset-0 bg-black/60 transition-opacity duration-200 ease-out z-[90]">
+     class="hidden opacity-0 fixed inset-0 bg-black/30 transition-opacity duration-200 ease-out z-[90]">
 </div>
 
 <!-- Modal -->
 <div data-delete-confirm-all-tasks-target="modal"
      class="hidden opacity-0 scale-95 fixed inset-0 flex items-center justify-center z-[100] pointer-events-none transition-all duration-200 ease-out">
-  <div class="pointer-events-auto bg-bg-surface rounded-lg shadow-xl max-w-sm w-full mx-4 p-6 border border-border">
+  <div class="pointer-events-auto bg-bg-elevated rounded-2xl max-w-sm w-full mx-4 p-6 border border-border" style="box-shadow: 0 12px 40px rgba(0,0,0,0.12);">
     <!-- Title -->
-    <h3 class="text-lg font-medium text-content mb-2 tracking-tight font-display">
+    <h3 class="text-xl font-semibold text-content mb-2 tracking-[-0.02em]">
       Delete "<span data-delete-confirm-all-tasks-target="itemName"></span>"?
     </h3>
 
@@ -37,12 +37,12 @@
     <div class="flex gap-3 justify-end">
       <button type="button"
               data-action="click->delete-confirm-all-tasks#close"
-              class="px-4 py-2 text-sm rounded-md bg-bg-elevated hover:bg-bg-hover text-content-secondary transition-colors">
+              class="px-4 py-2 text-sm font-medium rounded-md border border-[rgba(28,28,28,0.4)] text-content hover:bg-bg-hover transition-colors">
         Cancel
       </button>
       <button type="button"
               data-action="click->delete-confirm-all-tasks#confirm"
-              class="px-4 py-2 text-sm rounded-md bg-red-500 text-white hover:bg-red-600 transition-colors">
+              class="px-4 py-2 text-sm font-medium rounded-md bg-[#b3261e] text-content-inverse btn-inset-shadow hover:opacity-90 transition-opacity">
         Delete
       </button>
     </div>

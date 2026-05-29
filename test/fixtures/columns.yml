@@ -1,0 +1,34 @@
+one_inbox:
+  board: one_default
+  name: Inbox
+  position: 0
+
+one_up_next:
+  board: one_default
+  name: Up Next
+  position: 1
+
+one_in_progress:
+  board: one_default
+  name: In Progress
+  position: 2
+
+one_in_review:
+  board: one_default
+  name: In Review
+  position: 3
+
+one_done:
+  board: one_default
+  name: Done
+  position: 4
+
+two_inbox:
+  board: two_default
+  name: Inbox
+  position: 0
+
+two_in_progress:
+  board: two_default
+  name: In Progress
+  position: 1

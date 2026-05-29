@@ -1,0 +1,14 @@
+<% tasks = @column.tasks.order(:position) %>
+
+<%# Replace the column on the kanban (header + agent chip update). %>
+<%= turbo_stream.replace "board-column-#{@column.id}" do %>
+  <%= render "boards/column", column: @column, tasks: tasks %>
+<% end %>
+
+<%# Replace the row in the manage modal. %>
+<%= turbo_stream.replace "manage-column-#{@column.id}" do %>
+  <%= render "columns/manage_row", column: @column %>
+<% end %>
+
+<%# Close the form modal turbo frame. %>
+<%= turbo_stream.update "column_form_modal", "" %>

@@ -1,0 +1,62 @@
+<div data-list-view class="p-6 max-w-6xl mx-auto">
+  <header class="flex items-center justify-between mb-6">
+    <h1 class="text-3xl font-semibold tracking-[-0.025em] text-content">
+      <%= @board.icon %> <%= @board.name %> &mdash; List view
+    </h1>
+    <%= link_to "← Voltar ao Kanban", board_path(@board), class: "text-sm text-content-muted hover:text-content underline" %>
+  </header>
+
+  <%= render "shared/filter_bar", board: @board %>
+
+  <p class="text-content-muted text-sm mb-3">
+    <%= @tasks_total_count %> task(s).
+  </p>
+
+  <div class="bg-bg-elevated border border-border rounded-xl overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-bg-elevated border-b border-border">
+        <tr>
+          <th class="text-left px-4 py-3 text-xs font-medium text-content-muted">
+            <%= link_to "Name", url_for(request.query_parameters.merge(sort: "name", order: (params[:sort] == "name" && params[:order] == "asc") ? "desc" : "asc")), class: "hover:text-content transition-colors" %>
+          </th>
+          <th class="text-left px-4 py-3 text-xs font-medium text-content-muted">Column</th>
+          <th class="text-left px-4 py-3 text-xs font-medium text-content-muted">Tags</th>
+          <th class="text-left px-4 py-3 text-xs font-medium text-content-muted">
+            <%= link_to "Updated", url_for(request.query_parameters.merge(sort: "updated_at", order: (params[:sort] == "updated_at" && params[:order] == "asc") ? "desc" : "asc")), class: "hover:text-content transition-colors" %>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @tasks.each do |task| %>
+          <tr class="border-t border-border hover:bg-bg-hover transition-colors">
+            <td class="px-4 py-3">
+              <%= link_to task.name, board_task_path(@board, task), class: "text-content font-medium hover:underline" %>
+            </td>
+            <td class="px-4 py-3 text-content-secondary"><%= task.column&.name %></td>
+            <td class="px-4 py-3">
+              <div class="flex flex-wrap gap-1">
+                <% (task.tags || []).each do |tag| %>
+                  <span class="inline-block bg-bg-base border border-border text-content-muted px-2 py-0.5 text-xs rounded-full"><%= tag %></span>
+                <% end %>
+              </div>
+            </td>
+            <td class="px-4 py-3 text-content-muted text-xs font-mono"><%= task.updated_at.strftime("%d/%m %H:%M") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <%# Paginação manual (sem kaminari) %>
+  <% if @tasks_total_pages.to_i > 1 %>
+    <nav class="flex gap-3 mt-4 items-center text-sm">
+      <% if @tasks_current_page > 1 %>
+        <%= link_to "← Anterior", url_for(request.query_parameters.merge(page: @tasks_current_page - 1)), class: "text-content-muted hover:text-content underline" %>
+      <% end %>
+      <span class="text-content-muted"><%= @tasks_current_page %> / <%= @tasks_total_pages %></span>
+      <% if @tasks_current_page < @tasks_total_pages %>
+        <%= link_to "Próxima →", url_for(request.query_parameters.merge(page: @tasks_current_page + 1)), class: "text-content-muted hover:text-content underline" %>
+      <% end %>
+    </nav>
+  <% end %>
+</div>

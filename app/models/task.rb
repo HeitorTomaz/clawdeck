@@ -1,15 +1,15 @@
 class Task < ApplicationRecord
   belongs_to :user
   belongs_to :board
+  belongs_to :column
+  belongs_to :assigned_agent, class_name: "Agent", optional: true
   has_many :activities, class_name: "TaskActivity", dependent: :destroy
   has_many :subtasks, dependent: :destroy
 
   enum :priority, { none: 0, low: 1, medium: 2, high: 3 }, default: :none, prefix: true
-  enum :status, { inbox: 0, up_next: 1, in_progress: 2, in_review: 3, done: 4 }, default: :inbox
 
   validates :name, presence: true
   validates :priority, inclusion: { in: priorities.keys }
-  validates :status, inclusion: { in: statuses.keys }
 
   # Activity tracking - must be declared before callbacks that use it
   attr_accessor :activity_source, :actor_name, :actor_emoji, :activity_note
@@ -25,25 +25,61 @@ class Task < ApplicationRecord
   after_create :record_creation_activity
   after_update :record_update_activities
 
+  # Webhook dispatch when task enters an agent-assigned column flagged for webhook.
+  after_update_commit :enqueue_agent_webhook, if: :should_fire_webhook?
+
   # Position management - acts_as_list functionality without the gem
   before_create :set_position
-  before_save :sync_completed_with_status
-  before_update :track_completion_time, if: :will_save_change_to_status?
+  before_save :sync_completed_with_column
+  before_update :track_completion_time, if: :will_save_change_to_column_id?
 
   # Order incomplete tasks by position, completed tasks by completion time (most recent first)
   scope :incomplete, -> { where(completed: false).reorder(position: :asc) }
   scope :completed, -> { where(completed: true).reorder(completed_at: :desc) }
-  scope :assigned_to_agent, -> { where(assigned_to_agent: true).reorder(assigned_at: :asc) }
-  scope :unassigned, -> { where(assigned_to_agent: false) }
+  scope :assigned, -> { where.not(assigned_agent_id: nil) }
+  scope :unassigned, -> { where(assigned_agent_id: nil) }
   default_scope { order(completed: :asc, position: :asc) }
 
-  # Agent assignment methods
-  def assign_to_agent!
-    update!(assigned_to_agent: true, assigned_at: Time.current)
+  scope :filter_by, ->(params, board:) {
+    rel = where(board: board)
+
+    if params[:q].present?
+      like = "%#{ActiveRecord::Base.sanitize_sql_like(params[:q])}%"
+      rel = rel.where("name ILIKE :like OR description ILIKE :like", like: like)
+    end
+
+    tags = Array(params[:tag]).reject(&:blank?)
+    tags.each do |tag|
+      rel = rel.where("tags @> ARRAY[?]::varchar[]", tag)
+    end
+
+    cols = Array(params[:column]).reject(&:blank?)
+    if cols.any?
+      column_ids = board.columns.where(name: cols).pluck(:id)
+      rel = rel.where(column_id: column_ids)
+    end
+
+    actors = Array(params[:touched_by]).reject(&:blank?)
+    if actors.any?
+      task_ids = TaskActivity.where(actor_type: actors).distinct.pluck(:task_id)
+      rel = rel.where(id: task_ids)
+    end
+
+    rel
+  }
+
+  # Returns true if the task is sitting in the board's "Done" column.
+  def done?
+    column&.name == "Done"
+  end
+
+  # Convenience: assign this task to a given Agent (or nil to unassign).
+  def assign_to_agent!(agent)
+    update!(assigned_agent: agent)
   end
 
   def unassign_from_agent!
-    update!(assigned_to_agent: false, assigned_at: nil)
+    update!(assigned_agent: nil)
   end
 
   private
@@ -51,8 +87,8 @@ class Task < ApplicationRecord
   def set_position
     return if position.present?
 
-    # Append: set position to end of list
-    max_position = board.tasks.where(status: status).maximum(:position) || 0
+    # Append: set position to end of list within the same column
+    max_position = board.tasks.where(column_id: column_id).maximum(:position) || 0
     self.position = max_position + 1
   end
 
@@ -64,12 +100,12 @@ class Task < ApplicationRecord
     @stored_activity_source == "web" || activity_source == "web"
   end
 
-  def sync_completed_with_status
-    self.completed = (status == "done")
+  def sync_completed_with_column
+    self.completed = (column&.name == "Done")
   end
 
   def track_completion_time
-    if status == "done"
+    if column&.name == "Done"
       self.completed_at = Time.current
     else
       self.completed_at = nil
@@ -83,10 +119,12 @@ class Task < ApplicationRecord
   def record_update_activities
     source = activity_source || "web"
 
-    # Track status/column changes
-    if saved_change_to_status?
-      old_status, new_status = saved_change_to_status
-      TaskActivity.record_status_change(self, old_status: old_status, new_status: new_status, source: source, actor_name: actor_name, actor_emoji: actor_emoji, note: activity_note)
+    # Track column changes (replaces legacy status change tracking)
+    if saved_change_to_column_id?
+      old_id, new_id = saved_change_to_column_id
+      old_name = old_id && Column.unscoped.where(id: old_id).pick(:name)
+      new_name = new_id && Column.unscoped.where(id: new_id).pick(:name)
+      TaskActivity.record_status_change(self, old_status: old_name, new_status: new_name, source: source, actor_name: actor_name, actor_emoji: actor_emoji, note: activity_note)
     end
 
     # Track field changes
@@ -100,30 +138,30 @@ class Task < ApplicationRecord
 
     broadcast_to_board(
       action: :prepend,
-      target: "column-#{status}",
+      target: "column-#{column_id}",
       partial: "boards/task_card",
       locals: { task: self }
     )
-    broadcast_column_count(status)
+    broadcast_column_count(column_id)
   end
 
   def broadcast_update
     return if skip_broadcast?
 
-    # If status changed, handle move between columns
-    if saved_change_to_status?
-      old_status, new_status = saved_change_to_status
+    # If column changed, handle move between columns
+    if saved_change_to_column_id?
+      old_column_id, new_column_id = saved_change_to_column_id
       # Remove from old column
       broadcast_to_board(action: :remove, target: "task_#{id}")
       # Add to new column
       broadcast_to_board(
         action: :prepend,
-        target: "column-#{new_status}",
+        target: "column-#{new_column_id}",
         partial: "boards/task_card",
         locals: { task: self }
       )
-      broadcast_column_count(old_status)
-      broadcast_column_count(new_status)
+      broadcast_column_count(old_column_id)
+      broadcast_column_count(new_column_id)
     else
       # Just update the card in place
       broadcast_to_board(
@@ -140,28 +178,28 @@ class Task < ApplicationRecord
 
     # Cache values before they become inaccessible
     cached_board_id = board_id
-    cached_status = status
+    cached_column_id = column_id
     cached_id = id
     stream = "board_#{cached_board_id}"
 
     Turbo::StreamsChannel.broadcast_action_to(stream, action: :remove, target: "task_#{cached_id}")
 
     # Update column count
-    count = Board.find(cached_board_id).tasks.where(status: cached_status).count
+    count = Board.find(cached_board_id).tasks.where(column_id: cached_column_id).count
     Turbo::StreamsChannel.broadcast_action_to(
       stream,
       action: :replace,
-      target: "column-#{cached_status}-count",
-      html: %(<span id="column-#{cached_status}-count" style="font-size:11px;font-weight:600;color:#444;background:rgba(255,255,255,0.04);padding:0 7px;border-radius:5px;line-height:20px">#{count}</span>)
+      target: "column-#{cached_column_id}-count",
+      html: %(<span id="column-#{cached_column_id}-count" style="font-size:11px;font-weight:600;color:#444;background:rgba(255,255,255,0.04);padding:0 7px;border-radius:5px;line-height:20px">#{count}</span>)
     )
   end
 
-  def broadcast_column_count(column_status)
-    count = board.tasks.where(status: column_status).count
+  def broadcast_column_count(column_id)
+    count = board.tasks.where(column_id: column_id).count
     broadcast_to_board(
       action: :replace,
-      target: "column-#{column_status}-count",
-      html: %(<span id="column-#{column_status}-count" style="font-size:11px;font-weight:600;color:#444;background:rgba(255,255,255,0.04);padding:0 7px;border-radius:5px;line-height:20px">#{count}</span>)
+      target: "column-#{column_id}-count",
+      html: %(<span id="column-#{column_id}-count" style="font-size:11px;font-weight:600;color:#444;background:rgba(255,255,255,0.04);padding:0 7px;border-radius:5px;line-height:20px">#{count}</span>)
     )
   end
 
@@ -171,5 +209,15 @@ class Task < ApplicationRecord
 
   def broadcast_to_board(action:, target:, **options)
     Turbo::StreamsChannel.broadcast_action_to(board_stream_name, action: action, target: target, **options)
+  end
+
+  def should_fire_webhook?
+    saved_change_to_column_id? &&
+      column&.webhook_enabled? &&
+      column.assigned_agent&.webhook_cron_id.present?
+  end
+
+  def enqueue_agent_webhook
+    AgentWebhookJob.perform_later(id, column_id)
   end
 end

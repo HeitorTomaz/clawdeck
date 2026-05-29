@@ -1,0 +1,11 @@
+<%# Append the new column to the kanban board and to the manage modal list. %>
+<%= turbo_stream.append "board-columns" do %>
+  <%= render "boards/column", column: @column, tasks: [] %>
+<% end %>
+
+<%= turbo_stream.append "manage-columns-list" do %>
+  <%= render "columns/manage_row", column: @column %>
+<% end %>
+
+<%# Close the form modal turbo frame %>
+<%= turbo_stream.update "column_form_modal", "" %>
