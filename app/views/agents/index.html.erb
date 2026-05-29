@@ -39,6 +39,11 @@
                   <%= assigned_columns.size %> column(s) ·
                   <%= assigned_task_count %> task(s) assigned
                 </div>
+                <% if agent.respond_to?(:webhook_cron_id) && agent.webhook_cron_id.present? %>
+                  <div class="text-[11px] text-content-muted mt-1 font-mono break-all">
+                    OpenClaw cron: <span class="text-content-secondary"><%= agent.webhook_cron_id %></span>
+                  </div>
+                <% end %>
                 <% if assigned_columns.any? %>
                   <div class="text-xs text-content-muted mt-1.5 flex flex-wrap gap-1">
                     <% assigned_columns.each do |col| %>
