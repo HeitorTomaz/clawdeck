@@ -47,6 +47,7 @@
                   <div class="text-xs text-content-muted mt-1.5 flex flex-wrap gap-1">
                     <% assigned_columns.each do |col| %>
                       <span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-bg-base border border-border rounded text-[10px]">
+                        <% if col.board.respond_to?(:icon) && col.board.icon.present? %><span><%= col.board.icon %></span><% end %>
                         <%= col.board.name %> · <%= col.name %><% if col.respond_to?(:webhook_enabled?) && col.webhook_enabled? %> · ⚡<% end %>
                       </span>
                     <% end %>
