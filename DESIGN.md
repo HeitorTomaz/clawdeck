@@ -1,338 +1,276 @@
----
-version: alpha
-name: cockpit-design-analysis
-description: A motorsport-engineering interface anchored on a pure-black canvas with white display headlines in confident UPPERCASE. The system carries no decorative voltage — its energy comes from sharp rectangular silhouettes, generous negative space, and weight-pair typography (heavy display vs. light body). A tricolor accent stripe (blue → indigo → red) is used sparingly as a brand signature on dividers, badges, and active states. Type stays light to medium weight to feel European-engineered, never American-bombastic.
+# ClawDeck Design System
 
-colors:
-  primary: "#ffffff"
-  ink: "#ffffff"
-  body: "#bbbbbb"
-  body-strong: "#e6e6e6"
-  muted: "#7e7e7e"
-  hairline: "#3c3c3c"
-  hairline-strong: "#262626"
-  canvas: "#000000"
-  surface-card: "#1a1a1a"
-  surface-elevated: "#262626"
-  surface-soft: "#0d0d0d"
-  on-primary: "#000000"
-  on-dark: "#ffffff"
-  accent-blue-light: "#0066b1"
-  accent-blue-dark: "#1c69d4"
-  accent-red: "#e22718"
-  heritage-blue: "#1c69d4"
-  electric-blue: "#0653b6"
-  carbon-gray: "#2b2b2b"
-  warning: "#f4b400"
-  success: "#0fa336"
+## 1. Visual Theme & Atmosphere
 
-typography:
-  display-xl:
-    fontFamily: "Saira Condensed, sans-serif"
-    fontSize: 80px
-    fontWeight: 800
-    lineHeight: 1
-    letterSpacing: 0
-  display-lg:
-    fontFamily: "Saira Condensed, sans-serif"
-    fontSize: 56px
-    fontWeight: 800
-    lineHeight: 1.05
-    letterSpacing: 0
-  display-md:
-    fontFamily: "Saira Condensed, sans-serif"
-    fontSize: 40px
-    fontWeight: 700
-    lineHeight: 1.1
-    letterSpacing: 0
-  display-sm:
-    fontFamily: "Saira Condensed, sans-serif"
-    fontSize: 32px
-    fontWeight: 700
-    lineHeight: 1.15
-    letterSpacing: 0
-  title-lg:
-    fontFamily: "Saira, sans-serif"
-    fontSize: 24px
-    fontWeight: 700
-    lineHeight: 1.3
-    letterSpacing: 0
-  title-md:
-    fontFamily: "Saira, sans-serif"
-    fontSize: 20px
-    fontWeight: 400
-    lineHeight: 1.4
-    letterSpacing: 0
-  title-sm:
-    fontFamily: "Saira, sans-serif"
-    fontSize: 18px
-    fontWeight: 400
-    lineHeight: 1.4
-    letterSpacing: 0
-  label-uppercase:
-    fontFamily: "Saira, sans-serif"
-    fontSize: 14px
-    fontWeight: 700
-    lineHeight: 1.3
-    letterSpacing: 1.5px
-  body-md:
-    fontFamily: "Saira, sans-serif"
-    fontSize: 16px
-    fontWeight: 300
-    lineHeight: 1.5
-    letterSpacing: 0
-  body-sm:
-    fontFamily: "Saira, sans-serif"
-    fontSize: 14px
-    fontWeight: 300
-    lineHeight: 1.5
-    letterSpacing: 0
-  caption:
-    fontFamily: "Saira, sans-serif"
-    fontSize: 12px
-    fontWeight: 400
-    lineHeight: 1.4
-    letterSpacing: 0.5px
-  button:
-    fontFamily: "Saira, sans-serif"
-    fontSize: 14px
-    fontWeight: 700
-    lineHeight: 1
-    letterSpacing: 1.5px
-  nav-link:
-    fontFamily: "Saira, sans-serif"
-    fontSize: 14px
-    fontWeight: 400
-    lineHeight: 1.4
-    letterSpacing: 0.5px
+ClawDeck radiates warmth through restraint. The entire interface sits on a creamy, parchment-toned background (`#f7f4ed`) that separates it from the cold-white conventions of most developer tool dashboards. This isn't minimalism for minimalism's sake — it's a deliberate choice to feel approachable, almost analog, like a well-crafted notebook. The near-black text (`#1c1c1c`) against this warm cream creates a contrast ratio that's easy on the eyes while maintaining sharp readability.
 
-rounded:
-  none: 0px
-  xs: 2px
-  sm: 4px
-  md: 6px
-  full: 9999px
+Instrument Sans is the system's typographic backbone. A humanist variable sans-serif, it brings warmth and editorial calm where geometric sans-serifs would feel clinical. At display sizes (48px–60px), weight 600 with aggressive negative letter-spacing (-0.9px to -1.5px) compresses headlines into confident, editorial statements. The fallback stack — `ui-sans-serif, system-ui` — keeps the page legible even before web fonts load.
 
-spacing:
-  xxs: 4px
-  xs: 8px
-  sm: 12px
-  md: 16px
-  lg: 24px
-  xl: 40px
-  xxl: 64px
-  section: 96px
----
-
-## Overview
-
-A near-pure black canvas (`{colors.canvas}` — #000) holds white display headlines in **confident UPPERCASE**. The system has no decorative voltage of its own; visual interest comes from sharp rectangular silhouettes, the contrast between heavy display (800) and light body (300), and generous negative space. UI chrome stays minimal: thin sans-serif copy, dividers as 1px hairlines (`{colors.hairline}`), all-caps button labels with no fill until hovered.
-
-The **accent tricolor stripe** — `{colors.accent-blue-light}` (#0066b1) → `{colors.accent-blue-dark}` (#1c69d4) → `{colors.accent-red}` (#e22718) — appears sparingly as the brand signature, used on logo accents, divider rules, and active-state indicators. It is never a CTA color and never used as a background fill — the tricolor is exclusively a brand-identity marker.
-
-Type voice runs **Saira Condensed** for display (uppercase, weight 700–800) and **Saira** for body (weight 300–400). The contrast between heavy display and light body is the system's editorial signature.
+What makes the system distinctive is its opacity-driven depth model. Rather than using a traditional gray scale, the system modulates `#1c1c1c` at varying opacities (0.03, 0.04, 0.4, 0.82–0.83) to create a unified tonal range. Every shade of gray on the page is technically the same hue — just more or less transparent. This creates a visual coherence that's nearly impossible to achieve with arbitrary hex values. The border system follows suit: `1px solid #eceae4` for light divisions and `1px solid rgba(28, 28, 28, 0.4)` for stronger interactive boundaries.
 
 **Key Characteristics:**
-- Pure black canvas (`{colors.canvas}` — #000) with white type. No light-mode surface.
-- Display headlines in UPPERCASE at weight 700–800. Sub-heads stay sentence-case at lighter weight.
-- The tricolor stripe is used as a 4px divider, logo accent, and active-state marker — never as a button or fill.
-- Buttons are flat with `{rounded.none}` (0px) corners and uppercase letterspaced labels. The "industrial precision" rectangular silhouette IS the brand.
-- Border radius is mostly zero. Exceptions: `{rounded.full}` on circular icon buttons and `{rounded.sm}` (4px) on small toggle pills.
-- Spacing is generous and grid-aligned: `{spacing.section}` (96px) between major bands; `{spacing.xxl}` (64px) inside hero bands; `{spacing.xl}` (40px) inside content cards.
+- Warm parchment background (`#f7f4ed`) — not white, not beige, a deliberate cream
+- Instrument Sans variable typeface with humanist warmth and editorial letter-spacing at display sizes
+- Opacity-driven color system: all grays derived from `#1c1c1c` at varying transparency levels
+- Inset shadow technique on buttons: `rgba(255,255,255,0.2) 0px 0.5px 0px 0px inset, rgba(0,0,0,0.2) 0px 0px 0px 0.5px inset`
+- Warm neutral border palette: `#eceae4` for subtle, `rgba(28,28,28,0.4)` for interactive elements
+- Full-pill radius (`9999px`) used selectively for action toggles and icon containers
+- Focus state uses `rgba(0,0,0,0.1) 0px 4px 12px` shadow for soft, warm emphasis
+- Tailwind utility styling on Rails ERB partials — no JS UI framework
 
-## Colors
+## 2. Color Palette & Roles
 
-### Brand & Accent
-- **Primary** (`#ffffff`): The system's primary type and CTA color. Used for h1/h2/h3 display, body text on dark, and primary button labels.
-- **Accent Blue Light** (`#0066b1`): First stop in the tricolor stripe. Used on badge accents and motorsport chrome.
-- **Accent Blue Dark** (`#1c69d4`): Middle stop. Heritage corporate blue, repurposed as the middle band.
-- **Accent Red** (`#e22718`): Third stop. Signature power red, used in the stripe and pace callouts.
-- **Electric Blue** (`#0653b6`): Distinct electric/digital accent — colder than the heritage blue.
+### Primary
+- **Cream** (`#f7f4ed`): Page background, card surfaces, button surfaces. The foundation — warm, paper-like, human.
+- **Charcoal** (`#1c1c1c`): Primary text, headings, dark button backgrounds. Not pure black — organic warmth.
+- **Off-White** (`#fcfbf8`): Button text on dark backgrounds, subtle highlight surfaces.
 
-### Surface
-- **Canvas** (`#000000`): Default page floor. True black.
-- **Surface Soft** (`#0d0d0d`): Spec table cells, footer-adjacent strips.
-- **Surface Card** (`#1a1a1a`): Cards, secondary buttons, icon-button backgrounds.
-- **Surface Elevated** (`#262626`): Nested cards inside dark bands.
-- **Carbon Gray** (`#2b2b2b`): Carbon-fiber-inspired surface on technical-spec cards.
+### Neutral Scale (Opacity-Based)
+- **Charcoal 100%** (`#1c1c1c`): Primary text, headings, dark surfaces.
+- **Charcoal 83%** (`rgba(28,28,28,0.83)`): Strong secondary text.
+- **Charcoal 82%** (`rgba(28,28,28,0.82)`): Body copy.
+- **Muted Gray** (`#5f5f5d`): Secondary text, descriptions, captions.
+- **Charcoal 40%** (`rgba(28,28,28,0.4)`): Interactive borders, button outlines.
+- **Charcoal 4%** (`rgba(28,28,28,0.04)`): Subtle hover backgrounds, micro-tints.
+- **Charcoal 3%** (`rgba(28,28,28,0.03)`): Barely-visible overlays, background depth.
 
-### Hairlines & Borders
-- **Hairline** (`#3c3c3c`): 1px divider tone on dark surfaces.
-- **Hairline Strong** (`#262626`): Borders that feel like one-step elevations.
+### Surface & Border
+- **Light Cream** (`#eceae4`): Card borders, dividers, image outlines. The warm divider line.
+- **Cream Surface** (`#f7f4ed`): Card backgrounds, section fills — same as page background for seamless integration.
 
-### Text
-- **Ink / On Dark** (`#ffffff`): Headline and primary text on dark canvas.
-- **Body** (`#bbbbbb`): Default running-text color.
-- **Body Strong** (`#e6e6e6`): Emphasized body / lead paragraph.
-- **Muted** (`#7e7e7e`): Footer links, breadcrumbs, captions.
+### Functional / Project Accents
+Saturation kept low for legibility on cream:
+- Error / destructive: `#b3261e`
+- Success: `#1e7a4e`
+- Warning: `#a07400`
+- Info: `#1f5fa8`
+- Agent: `#a07400`
 
-### Semantic
-- **Warning** (`#f4b400`)
-- **Success** (`#0fa336`)
+Per-board accents (chips, dots, mini progress):
+- ClawDeck `#b3261e` · tini.bio `#1e7a4e` · Gratu `#a07400` · nod.so `#1f5fa8` · mx.works `#6d4eb8`
 
-## Typography
+### Interactive
+- **Focus Shadow** (`rgba(0,0,0,0.1) 0px 4px 12px`): Focus and active state shadow — soft, warm, diffused.
+
+### Inset Shadows
+- **Button Inset** (`rgba(255,255,255,0.2) 0px 0.5px 0px 0px inset, rgba(0,0,0,0.2) 0px 0px 0px 0.5px inset, rgba(0,0,0,0.05) 0px 1px 2px 0px`): The signature multi-layer inset shadow on dark buttons.
+
+## 3. Typography Rules
 
 ### Font Family
-**Saira Condensed** for display (700/800) and **Saira** for body (300/400). Fallback: `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`.
-
-The weight pair is deliberate:
-- Display (700–800) — the "stamped" voice
-- Light (300) — the "engineered" voice
-
-Never blur the contrast with regular display or medium body.
+- **Primary**: `Instrument Sans`, with fallbacks: `ui-sans-serif, system-ui, sans-serif`
+- **Mono**: `JetBrains Mono` — timestamps, counters, tokens.
+- **Weight range used**: 400 (body/UI), 500 (subtle emphasis), 600 (headings/emphasis).
+- **Style**: Variable font, supports italic axis. Keep weight ≤ 600.
 
 ### Hierarchy
 
-| Token | Size | Weight | Line Height | Letter Spacing | Use |
-|---|---|---|---|---|---|
-| `display-xl` | 80 | 800 | 1.0 | 0 | Hero h1 |
-| `display-lg` | 56 | 800 | 1.05 | 0 | Section heads |
-| `display-md` | 40 | 700 | 1.1 | 0 | Sub-section heads |
-| `display-sm` | 32 | 700 | 1.15 | 0 | CTA-band heads |
-| `title-lg` | 24 | 700 | 1.3 | 0 | Card titles |
-| `title-md` | 20 | 400 | 1.4 | 0 | Card sub-titles |
-| `title-sm` | 18 | 400 | 1.4 | 0 | Spec callouts |
-| `label-uppercase` | 14 | 700 | 1.3 | 1.5px | Tabs, inline labels |
-| `body-md` | 16 | 300 | 1.5 | 0 | Default body |
-| `body-sm` | 14 | 300 | 1.5 | 0 | Footer, fine print |
-| `caption` | 12 | 400 | 1.4 | 0.5px | Captions |
-| `button` | 14 | 700 | 1.0 | 1.5px | Button labels — uppercase |
-| `nav-link` | 14 | 400 | 1.4 | 0.5px | Top-nav menu items |
+| Role | Size | Weight | Line Height | Letter Spacing | Notes |
+|------|------|--------|-------------|----------------|-------|
+| Display Hero | 60px (3.75rem) | 600 | 1.00–1.10 (tight) | -1.5px | Maximum impact, editorial |
+| Section Heading | 48px (3.00rem) | 600 | 1.00 (tight) | -1.2px | Feature section titles |
+| Sub-heading | 36px (2.25rem) | 600 | 1.10 (tight) | -0.9px | Sub-sections |
+| Card Title | 20px (1.25rem) | 500 | 1.25 (tight) | normal | Card headings |
+| Body Large | 18px (1.13rem) | 400 | 1.38 | normal | Introductions |
+| Body | 16px (1.00rem) | 400 | 1.50 | normal | Standard reading text |
+| Button | 16px (1.00rem) | 500 | 1.50 | normal | Button labels |
+| Button Small | 14px (0.88rem) | 500 | 1.50 | normal | Compact buttons |
+| Link | 16px (1.00rem) | 400 | 1.50 | normal | Underline decoration |
+| Caption | 14px (0.88rem) | 400 | 1.50 | normal | Metadata, small text |
 
 ### Principles
-Heavy headlines (800) contrast against light body (300) at all times — the gap is the editorial signature. Letter-spacing is non-trivial: button labels and category labels carry 1.5px tracking that makes them feel machined. UPPERCASE display is the default voice for h1/h2.
+- **Warm humanist voice**: Instrument Sans gives ClawDeck its approachable personality. Slightly open apertures and organic curves contrast with the sharp geometric sans-serifs used by most developer tools.
+- **Compression at scale**: Headlines use negative letter-spacing (-0.9px to -1.5px) for editorial impact. Body text stays at normal tracking for comfortable reading.
+- **Narrow weight range**: 400 (body/UI/links), 500 (buttons, card titles), 600 (headings). Never 700+. Hierarchy comes from size and spacing, not heavy weight contrast.
 
-## Layout
-
-### Spacing System
-- Base unit 4px. Tokens: 4 / 8 / 12 / 16 / 24 / 40 / 64 / 96.
-- Section padding (vertical): 96px between major bands.
-- Hero bands: 64px internal padding.
-- Card internal padding: 24px content / 40px spec cells.
-- Gutters: 24px between cards in grids; 16px inside footer columns.
-
-### Grid & Container
-- Max content width: ~1440px centered.
-- Card grids: 3-up desktop, 2-up tablet, 1-up mobile.
-
-### Whitespace Philosophy
-Empty space stays as pure black canvas — never gradients, never atmospheric backdrops.
-
-## Elevation & Depth
-
-| Level | Treatment | Use |
-|---|---|---|
-| Flat | No shadow, no border | Body sections, nav, footer |
-| Soft hairline | 1px `{colors.hairline}` border | Section dividers, card outlines, table rows |
-| Card surface | `{colors.surface-card}` over canvas — no shadow | Feature cards, chatbot launcher |
-
-No drop shadows. No layered chrome. Depth comes from the contrast between black canvas and slightly-elevated surface.
-
-### Decorative Depth
-- **Tricolor stripe**: A 4px horizontal divider carrying blue → indigo → red. Used sparingly as a brand-identity marker. The only true "decorative" element in the system.
-- **Carbon-fiber surfaces**: `{colors.carbon-gray}` (#2b2b2b) cells with subtle texture overlay on technical-spec pages.
-
-## Shapes
-
-### Border Radius Scale
-
-| Token | Value | Use |
-|---|---|---|
-| `none` | 0px | All buttons, cards, photo containers, spec cells, inputs — the dominant radius |
-| `xs` | 2px | Almost no use |
-| `sm` | 4px | Small toggle pills |
-| `md` | 6px | Rare — small dropdown menu items |
-| `full` | 9999px | Circular icon buttons, carousel arrows |
-
-The radius hierarchy is "almost always 0, sometimes circular." Sharp rectangles read as engineered precision; circles read as functional controls. Nothing in between.
-
-## Components
-
-### Top Navigation
-**`top-nav`** — Black nav bar pinned to top. 64px tall, canvas background. Logo at left, primary horizontal menu, right-side cluster.
+## 4. Component Stylings
 
 ### Buttons
 
-**`button-primary`** — Background canvas, white text, 1px white border, `rounded.none`, padding 16×32, height 48. Type: uppercase 14/700/1.5px tracking.
+**Primary Dark (Inset Shadow)**
+- Background: `#1c1c1c`
+- Text: `#fcfbf8`
+- Padding: 8px 16px
+- Radius: 6px
+- Shadow: `rgba(255,255,255,0.2) 0px 0.5px 0px 0px inset, rgba(0,0,0,0.2) 0px 0px 0px 0.5px inset, rgba(0,0,0,0.05) 0px 1px 2px 0px`
+- Active: opacity 0.8
+- Focus: `rgba(0,0,0,0.1) 0px 4px 12px` shadow
+- Use: Primary CTAs (login, create board, save task)
+- Class helper: `.btn-inset-shadow`
 
-**`button-primary-outline`** — Transparent background, white outline.
+**Ghost / Outline**
+- Background: transparent
+- Text: `#1c1c1c`
+- Padding: 8px 16px
+- Radius: 6px
+- Border: `1px solid rgba(28,28,28,0.4)`
+- Active: opacity 0.8
+- Use: Secondary actions (cancel, ghost menu items)
 
-**`button-icon`** — Circular 48×48, surface-card background, white icon, `rounded.full`.
+**Cream Surface**
+- Background: `#f7f4ed`
+- Text: `#1c1c1c`
+- Padding: 8px 16px
+- Radius: 6px
+- No border
+- Use: Tertiary actions, toolbar buttons
 
-**`text-link`** — Inline uppercase letterspaced links. White, no underline. Chevron arrow → glyph next to most labels.
+**Pill / Icon Button**
+- Background: `#fcfbf8`
+- Text: `#1c1c1c`
+- Radius: 9999px (full pill)
+- Optional inset shadow same as primary dark
+- Use: Filter chips, toggle pills, icon-only actions
 
 ### Cards & Containers
+- Background: `#f7f4ed` (matches page)
+- Border: `1px solid #eceae4`
+- Radius: 12px (standard), 16px (featured), 8px (compact)
+- No box-shadow by default — borders define boundaries
 
-**`hero-band`** — Full-width black band with UPPERCASE display headline at left, sub-headline below. 64px vertical padding.
+### Inputs & Forms
+- Background: `#f7f4ed`
+- Text: `#1c1c1c`
+- Border: `1px solid #eceae4`
+- Radius: 6px
+- Focus: `.focus-soft` (warm diffused shadow)
+- Placeholder: `#5f5f5d`
 
-**`feature-card`** — Surface-card background, `rounded.none`, 24px internal padding.
+### Navigation
+- Sticky horizontal nav on cream, no border by default
+- Logo left-aligned
+- Links: Instrument Sans 14–16px weight 400, `#1c1c1c`
+- CTA: dark button with inset shadow
+- Mobile: hamburger menu with 6px radius
 
-**`model-card`** — Canvas background (no card surface), `rounded.none`.
+### Links
+- Color: `#1c1c1c`
+- Decoration: underline (default)
+- Hover: opacity 0.8
+- No color change on hover — decoration carries the interactive signal
 
-**`spec-cell`** — Surface-soft background, `rounded.none`, 24px padding. Value at top in display-sm, label below in label-uppercase.
+### Distinctive Components
 
-**`chatbot-launcher`** — Right-side card on homepage. Surface-card, `rounded.none`, 24px padding.
+**Filter Bar (`shared/_filter_bar`)**
+- Search input + active filter chips
+- Active chips: pill (`rounded-full`) with `bg-[#fcfbf8] border border-[#eceae4]`, label + dismiss `×`
+- Active count badge: `text-sm font-medium text-[#5f5f5d]`
+- "Clear filters" link: underlined
 
-**`category-tab`** + **`category-tab-active`** — Text-only labels in label-uppercase. Active gets white color + 2px white underline. No background, no rounded corners.
+**Task Card (`boards/_task_card`)**
+- Background `#f7f4ed`, border `1px solid #eceae4`, radius 12px, padding 14–16px
+- Title: 16px weight 500 `#1c1c1c`
+- Tags as small pills with project color dot
 
-### Inputs
+**Task Panel (`boards/tasks/_panel`)**
+- Slide-in right, ~420px wide, `#fcfbf8` background, `border-left: 1px solid #eceae4`
+- Title: Instrument Sans 24px 600 letter-spacing -0.5px
+- Status pill: hairline border, rounded-full, 14px
 
-**`text-input`** — Surface-card background, white text, body-md, `rounded.none`, padding 12×16, height 48. 1px hairline border, white on focus.
+**Agent Card (`agents/index`)**
+- Cream card with `#eceae4` border, 12px radius
+- API token in `font-mono` chip with `bg-[#fcfbf8]`
 
-### Signature Components
+## 5. Layout Principles
 
-**`tricolor-stripe`** — The 4px horizontal stripe (blue light → blue dark → red). Used as divider on motorsport chrome, between brand sections, and as hover-state indicator on category tabs.
+### Spacing System
+- Base unit: 8px
+- Scale: 8 / 10 / 12 / 16 / 24 / 32 / 40 / 56 / 80 / 96 / 128 / 176 / 192 / 208
 
-**`cta-band`** — Pre-footer CTA carrying a centered headline in display-md and a button-primary-outline below. 80px vertical padding.
+### Grid & Container
+- Max content width: ~1200px (centered)
+- Hero: centered single-column with massive vertical padding (96px+)
+- Feature sections: 2–3 column grids
+- Showcase / list views: cards in responsive grids
 
-### Footer
-**`footer`** — Black footer. 4-column link list at desktop, vertical padding 64px.
+### Whitespace Philosophy
+- Editorial generosity at section boundaries (80px–208px)
+- Tight internal spacing within cards (12–24px)
+- Sections defined by spacing rather than border lines
 
-## Do's and Don'ts
+### Border Radius Scale
+- Micro (4px): Small interactive elements
+- Standard (6px): Buttons, inputs, navigation menu
+- Comfortable (8px): Compact cards
+- Card (12px): Standard cards, image containers
+- Container (16px): Large containers, dialog frames
+- Full Pill (9999px): Action pills, icon buttons, filter chips
+
+## 6. Depth & Elevation
+
+| Level | Treatment | Use |
+|-------|-----------|-----|
+| Flat (Level 0) | No shadow, cream background | Page surface, most content |
+| Bordered (Level 1) | `1px solid #eceae4` | Cards, images, dividers |
+| Inset (Level 2) | `.btn-inset-shadow` utility | Dark buttons, primary actions |
+| Focus (Level 3) | `.focus-soft` utility | Active/focus states |
+
+**Shadow Philosophy**: ClawDeck's depth system is intentionally shallow. Instead of floating cards with dramatic drop-shadows, the system relies on warm borders (`#eceae4`) against the cream surface to create gentle containment. The only notable shadow pattern is the inset shadow on dark buttons — a subtle multi-layer technique where a white highlight line sits at the top edge while a dark ring and soft drop handle the bottom. This creates a tactile, pressed-into-surface feeling rather than a hovering-above-surface feeling.
+
+## 7. Do's and Don'ts
 
 ### Do
-- Use UPPERCASE display headlines. Sentence-case display reads as off-brand.
-- Pair heavy display (700–800) with light body (300). The weight contrast IS the editorial signature.
-- Reserve the tricolor stripe for brand-identity moments — never as a button fill or surface.
-- Use `rounded.none` by default. `rounded.full` only for circular icon buttons.
-- Letter-space all-caps labels at 1.5px.
-- Use 96px between major bands for grid-aligned vertical rhythm.
+- Use the warm cream background (`#f7f4ed`) as the page foundation
+- Use Instrument Sans at display sizes with negative letter-spacing (-0.9px to -1.5px)
+- Derive all grays from `#1c1c1c` at varying opacity levels for tonal unity
+- Use the inset shadow technique on dark buttons for tactile depth
+- Use `#eceae4` borders instead of shadows for card containment
+- Keep the weight system narrow: 400 for body, 500 for buttons/card titles, 600 for headings
+- Use full-pill radius (9999px) for action pills, filter chips, icon toggles
+- Apply opacity 0.8 on active states for responsive tactile feedback
 
 ### Don't
-- Don't introduce brand colors outside the tricolor.
-- Don't bold body type. Body stays at 300 (Light).
-- Don't use rounded buttons. The rectangular silhouette IS the brand.
-- Don't put gradient backdrops behind hero type. The page floor stays pure black.
-- Don't repeat the same surface mode in two consecutive bands.
-- Don't use the tricolor stripe as a button fill — it's a divider/accent.
+- Don't use pure white (`#ffffff`) or pure black (`#000000`) as backgrounds — cream and charcoal are intentional
+- Don't use heavy box-shadows for cards — borders are the containment mechanism
+- Don't introduce saturated accent colors — the palette is intentionally warm-neutral
+- Don't use weight 700+ — 600 is the maximum
+- Don't UPPERCASE display headlines — Instrument Sans runs sentence-case
+- Don't apply 9999px radius on rectangular buttons — pills are for chips/toggles
+- Don't use sharp focus outlines — the system uses soft shadow-based focus indicators
+- Don't increase letter-spacing on headings — runs tight at scale
+- Don't bring back tricolor stripes, Saira, or any cockpit-era chrome
 
-## Responsive Behavior
+## 8. Responsive Behavior
 
+### Breakpoints
 | Name | Width | Key Changes |
-|---|---|---|
-| Mobile | < 768px | Hamburger nav; hero h1 scales 80→48px; grids 1-up; footer 4→1 |
-| Tablet | 768–1024px | Top nav tightens; 2-up grids; spec tables 2-up |
-| Desktop | 1024–1440px | Full top-nav; 3-up grids; spec tables 4-up |
-| Wide | > 1440px | Same as desktop; max content 1440px |
-
-### Touch Targets
-- `button-primary` 48×48 minimum (WCAG AAA).
-- `button-icon` 48×48.
-- `text-input` height 48.
+|------|-------|-------------|
+| Mobile Small | <600px | Tight single column, reduced padding |
+| Mobile | 600–640px | Standard mobile layout |
+| Tablet Small | 640–700px | 2-column grids begin |
+| Tablet | 700–768px | Card grids expand |
+| Desktop Small | 768–1024px | Multi-column layouts |
+| Desktop | 1024–1280px | Full feature layout |
+| Large Desktop | 1280–1536px | Maximum content width, generous margins |
 
 ### Collapsing Strategy
-- Top nav collapses to hamburger sheet at < 768px; menu opens as full-screen black overlay with tricolor stripe at top.
-- Card grids reduce columns rather than scaling cards down.
-- Spec tables collapse 4-up → 2-up → 1-up; values stay at display-sm regardless of column count.
-- Tricolor stripe stays 4px height across all breakpoints.
+- Hero: 60px → 48px → 36px headline scaling with proportional letter-spacing
+- Navigation: horizontal links → hamburger menu at 768px
+- Feature cards: 3-column → 2-column → single column stacked
+- Section spacing: 128px+ → 64px on mobile
 
-## Iteration Guide
+## 9. Agent Prompt Guide
 
-1. Focus on ONE component at a time.
-2. New components default to `rounded.none` (0px).
-3. Variants (`-active`, `-disabled`) live as separate entries.
-4. Use token references everywhere — never inline hex.
-5. Never document hover states. Default and Active/Pressed only.
-6. Display headlines stay UPPERCASE 700–800; body stays sentence-case 300.
-7. The tricolor is brand-identity-only — never extend it to "primary action" tokens.
-8. When in doubt about emphasis: bigger headline before bigger anything else.
+### Quick Color Reference
+- Primary CTA: Charcoal (`#1c1c1c`) with inset shadow
+- Background: Cream (`#f7f4ed`)
+- Heading text: Charcoal (`#1c1c1c`)
+- Body text: Charcoal 82% (`rgba(28,28,28,0.82)`) or Muted Gray (`#5f5f5d`)
+- Border: `#eceae4` (passive), `rgba(28,28,28,0.4)` (interactive)
+- Focus: `.focus-soft`
+- Button text on dark: `#fcfbf8`
+
+### Example Component Prompts
+- "Create a hero on cream (#f7f4ed). Headline at 60px Instrument Sans weight 600, line-height 1.10, letter-spacing -1.5px, color #1c1c1c. Subtitle at 18px weight 400, line-height 1.38, color #5f5f5d. Dark CTA button (#1c1c1c bg, #fcfbf8 text, 6px radius, 8px 16px padding, .btn-inset-shadow) and ghost button (transparent bg, 1px solid rgba(28,28,28,0.4) border, 6px radius)."
+- "Design a card on cream (#f7f4ed). Border: 1px solid #eceae4. Radius 12px. No box-shadow. Title at 20px Instrument Sans weight 500, line-height 1.25, color #1c1c1c. Body at 14px weight 400, color #5f5f5d."
+- "Build a filter bar: search input (cream bg, #eceae4 border, 6px radius) followed by active filter chips. Each chip: rounded-full, bg-[#fcfbf8] border-[#eceae4], label + × dismiss. 'Clear filters' link with underline."
+- "Create navigation: sticky on cream. Instrument Sans 16px weight 400 for links, #1c1c1c text. Dark CTA button right-aligned with inset shadow. Mobile: hamburger menu with 6px radius."
+
+### Iteration Guide
+1. Always use cream (`#f7f4ed`) as the base — never pure white or pure black
+2. Derive grays from `#1c1c1c` at opacity levels rather than using distinct hex values
+3. Use `#eceae4` borders for containment, not shadows
+4. Letter-spacing scales with size: -1.5px at 60px, -1.2px at 48px, -0.9px at 36px, normal at 16px
+5. Three weights: 400 (body), 500 (buttons/card titles), 600 (headings)
+6. The inset shadow on dark buttons is the signature detail — don't skip it
+7. Keep palette warm — no neon, no saturated reds, no cockpit black

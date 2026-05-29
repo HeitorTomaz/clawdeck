@@ -8,13 +8,13 @@
     <meta name="apple-mobile-web-app-title" content="ClawDeck">
     <meta name="application-name" content="ClawDeck">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#000000">
+    <meta name="theme-color" content="#f7f4ed">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-    <%# Fonts — Saira Condensed (display) + Saira (body) %>
+    <%# Fonts — Instrument Sans (humanist sans, display + body) + JetBrains Mono %>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;700;800&family=Saira:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <%= yield :head %>
     <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
     <%= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
@@ -29,7 +29,7 @@
     <%= javascript_importmap_tags %>
     <%= render "application/plausible_analytics" %>
   </head>
-  <body class="h-screen overflow-hidden bg-black text-white font-sans" data-controller="turbo-progress">
+  <body class="h-screen overflow-hidden bg-bg-base text-content font-sans" data-controller="turbo-progress">
     <% if @board_page %>
       <%# Board page - full screen, no wrapper %>
       <div class="h-screen flex flex-col bg-bg-base">
