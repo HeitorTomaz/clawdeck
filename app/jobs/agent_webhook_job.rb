@@ -9,7 +9,7 @@ class AgentWebhookJob < ApplicationJob
     column = Column.find_by(id: column_id)
     return unless task && column
     return unless column.webhook_enabled?
-    return unless column.assigned_agent&.webhook_cron_id.present?
+    return unless column.assigned_agent&.webhook_agent_id.present?
 
     AgentWebhookDispatcher.new(task, column.assigned_agent).call
   end

@@ -1,12 +1,12 @@
 require "net/http"
 require "uri"
 require "json"
-require "securerandom"
 
-# Dispatches a "cron.run" admin RPC call to the configured OpenClaw gateway
-# when a task lands on a column whose assigned agent has a webhook_cron_id.
+# Dispatches an OpenClaw "agent" webhook (POST /hooks/agent) when a task lands
+# on a column whose assigned agent has a webhook_agent_id.
 #
-# Reads ENV['OPENCLAW_RPC_URL'] and ENV['OPENCLAW_GATEWAY_TOKEN']. If either is
+# Reads ENV['OPENCLAW_HOOKS_URL'] (e.g. https://gw.example/hooks/agent) and
+# ENV['OPENCLAW_HOOKS_TOKEN'] (the dedicated hooks shared secret). If either is
 # blank, the dispatcher logs a warning and no-ops (so tests + envs without the
 # gateway don't error). Non-2xx responses raise:
 #   * TransientError for 5xx (caller retries)
@@ -25,17 +25,17 @@ class AgentWebhookDispatcher
   end
 
   def call
-    url = ENV["OPENCLAW_RPC_URL"]
-    token = ENV["OPENCLAW_GATEWAY_TOKEN"]
+    url = ENV["OPENCLAW_HOOKS_URL"]
+    token = ENV["OPENCLAW_HOOKS_TOKEN"]
     if url.blank? || token.blank?
-      Rails.logger.warn("[AgentWebhookDispatcher] missing OPENCLAW_RPC_URL or OPENCLAW_GATEWAY_TOKEN; skipping (task_id=#{@task.id})")
+      Rails.logger.warn("[AgentWebhookDispatcher] missing OPENCLAW_HOOKS_URL or OPENCLAW_HOOKS_TOKEN; skipping (task_id=#{@task.id})")
       return :skipped
     end
 
     body = {
-      id: "clawdeck-#{@task.id}-#{SecureRandom.hex(4)}",
-      method: "cron.run",
-      params: { id: @agent.webhook_cron_id }
+      name: "clawdeck-task-#{@task.id}",
+      agentId: @agent.webhook_agent_id,
+      message: hook_message
     }.to_json
 
     started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -47,7 +47,7 @@ class AgentWebhookDispatcher
     when 200..299
       Rails.logger.info(
         "[AgentWebhookDispatcher] ok task_id=#{@task.id} agent=#{@agent.name} " \
-        "column=#{@task.column&.name} http=#{code} duration_ms=#{duration_ms}"
+        "openclaw_agent=#{@agent.webhook_agent_id} column=#{@task.column&.name} http=#{code} duration_ms=#{duration_ms}"
       )
       response
     when 400..499
@@ -55,17 +55,30 @@ class AgentWebhookDispatcher
         "[AgentWebhookDispatcher] 4xx task_id=#{@task.id} agent=#{@agent.name} " \
         "http=#{code} duration_ms=#{duration_ms} body=#{response.body.to_s.byteslice(0, 200)}"
       )
-      raise PermanentError, "OpenClaw RPC returned #{code}"
+      raise PermanentError, "OpenClaw hook returned #{code}"
     else
       Rails.logger.warn(
         "[AgentWebhookDispatcher] 5xx task_id=#{@task.id} agent=#{@agent.name} " \
         "http=#{code} duration_ms=#{duration_ms}"
       )
-      raise TransientError, "OpenClaw RPC returned #{code}"
+      raise TransientError, "OpenClaw hook returned #{code}"
     end
   end
 
   private
+
+  # Plain-text briefing sent to the OpenClaw agent turn. Kept human-readable so
+  # the agent can act on it directly.
+  def hook_message
+    lines = []
+    lines << "Nova task atribuida no ClawDeck."
+    lines << "Board: #{@task.column&.board&.name}" if @task.column&.board
+    lines << "Coluna: #{@task.column&.name}" if @task.column
+    lines << "Task: #{@task.name}" if @task.name.present?
+    lines << "Descricao: #{@task.description}" if @task.description.present?
+    lines << "Dica: #{@task.agent_hint}" if @task.respond_to?(:agent_hint) && @task.agent_hint.present?
+    lines.join("\n")
+  end
 
   def post_json(url, body, token)
     return @http_client.call(url, body, token) if @http_client
