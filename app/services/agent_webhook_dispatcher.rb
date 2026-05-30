@@ -67,9 +67,13 @@ class AgentWebhookDispatcher
 
   private
 
-  # Plain-text briefing sent to the OpenClaw agent turn. Kept human-readable so
-  # the agent can act on it directly.
+  # Message sent to the OpenClaw agent turn. If the task's column defines a
+  # custom webhook_message, it is sent verbatim (the column owner controls the
+  # exact prompt). Otherwise a human-readable briefing is built from the task.
   def hook_message
+    custom = @task.column&.webhook_message
+    return render_template(custom) if custom.present?
+
     lines = []
     lines << "Nova task atribuida no ClawDeck."
     lines << "Board: #{@task.column&.board&.name}" if @task.column&.board
@@ -78,6 +82,20 @@ class AgentWebhookDispatcher
     lines << "Descricao: #{@task.description}" if @task.description.present?
     lines << "Dica: #{@task.agent_hint}" if @task.respond_to?(:agent_hint) && @task.agent_hint.present?
     lines.join("\n")
+  end
+
+  # Interpolates {{placeholder}} tokens (see Column::WEBHOOK_PLACEHOLDERS) with
+  # the card's fields. Unknown tokens are left untouched so typos stay visible.
+  def render_template(template)
+    values = {
+      "task.name"        => @task.name.to_s,
+      "task.description" => @task.description.to_s,
+      "task.agent_hint"  => (@task.respond_to?(:agent_hint) ? @task.agent_hint.to_s : ""),
+      "task.id"          => @task.id.to_s,
+      "board"            => @task.column&.board&.name.to_s,
+      "column"           => @task.column&.name.to_s
+    }
+    template.gsub(/\{\{\s*([\w.]+)\s*\}\}/) { |m| values.key?(Regexp.last_match(1)) ? values[Regexp.last_match(1)] : m }
   end
 
   def post_json(url, body, token)

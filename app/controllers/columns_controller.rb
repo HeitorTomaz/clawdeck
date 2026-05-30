@@ -120,7 +120,7 @@ class ColumnsController < ApplicationController
   end
 
   def column_params
-    permitted = params.require(:column).permit(:name, :position, :assigned_agent_id, :webhook_enabled)
+    permitted = params.require(:column).permit(:name, :position, :assigned_agent_id, :webhook_enabled, :webhook_message)
     # Restrict assigned_agent_id to agents the current user owns.
     if permitted[:assigned_agent_id].present?
       unless current_user.agents.exists?(id: permitted[:assigned_agent_id])

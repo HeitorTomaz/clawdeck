@@ -119,6 +119,14 @@ The request body is `{ "name": "clawdeck-task-<id>", "agentId": "<OpenClaw agent
 "message": "<task briefing>" }`. 2xx succeeds, 4xx is permanent (logged, no retry),
 5xx is transient (retried).
 
+**Customizing the message (per column).** Each **Column** has an optional
+*webhook message*. Left blank, ClawDeck sends a default briefing built from the
+card (board, column, title, description, hint). Filled in, it is sent verbatim,
+with `{{placeholder}}` tokens interpolated from the card — `{{task.name}}`,
+`{{task.description}}`, `{{task.agent_hint}}`, `{{task.id}}`, `{{board}}`,
+`{{column}}` (the available tokens are listed next to the field in the column
+settings). Unknown tokens are left as-is.
+
 **Setting up the OpenClaw side.** Each ClawDeck agent page generates a precise,
 copy-paste prompt to send to your OpenClaw `main` chat. It describes *only* the
 changes needed there: enable hooks (`hooks.enabled`), set `hooks.token`, and allow

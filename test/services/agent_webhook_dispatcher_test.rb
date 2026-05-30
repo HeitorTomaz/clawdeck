@@ -66,4 +66,12 @@ class AgentWebhookDispatcherTest < ActiveSupport::TestCase
       end
     end
   end
+
+  test "interpolates known placeholders and leaves unknown ones untouched" do
+    dispatcher = AgentWebhookDispatcher.new(@task, @agent)
+    result = dispatcher.send(:render_template, "Run {{task.name}} id={{task.id}} x={{unknown}}")
+    assert_includes result, "Run #{@task.name}"
+    assert_includes result, "id=#{@task.id}"
+    assert_includes result, "x={{unknown}}"
+  end
 end
