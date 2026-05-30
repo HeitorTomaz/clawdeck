@@ -153,6 +153,17 @@ class TaskTest < ActiveSupport::TestCase
     end
   end
 
+  test "enqueues AgentWebhookJob when a task is created directly in a webhook-enabled column" do
+    agent = agents(:one_primary)
+    agent.update!(webhook_agent_id: "abc-123")
+    target = columns(:one_in_progress)
+    target.update!(assigned_agent: agent, webhook_enabled: true)
+
+    assert_enqueued_jobs 1, only: AgentWebhookJob do
+      Task.create!(name: "Created in column", board: target.board, column: target)
+    end
+  end
+
   test "does not enqueue webhook when column webhook_enabled is false" do
     agent = agents(:one_primary)
     agent.update!(webhook_agent_id: "abc-123")

@@ -25,7 +25,9 @@ class Task < ApplicationRecord
   after_create :record_creation_activity
   after_update :record_update_activities
 
-  # Webhook dispatch when task enters an agent-assigned column flagged for webhook.
+  # Webhook dispatch when a task enters an agent-assigned column flagged for
+  # webhook -- both when created directly into such a column and when moved into one.
+  after_create_commit :enqueue_agent_webhook, if: :should_fire_webhook_on_create?
   after_update_commit :enqueue_agent_webhook, if: :should_fire_webhook?
 
   # Position management - acts_as_list functionality without the gem
@@ -214,6 +216,13 @@ class Task < ApplicationRecord
   def should_fire_webhook?
     saved_change_to_column_id? &&
       column&.webhook_enabled? &&
+      column.assigned_agent&.webhook_agent_id.present?
+  end
+
+  # On create the task is dropped straight into a column, so mirror
+  # should_fire_webhook? without the column-change check.
+  def should_fire_webhook_on_create?
+    column&.webhook_enabled? &&
       column.assigned_agent&.webhook_agent_id.present?
   end
 
