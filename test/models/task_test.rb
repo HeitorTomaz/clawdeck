@@ -141,9 +141,9 @@ class TaskTest < ActiveSupport::TestCase
 
   # --- Webhook callback ---
 
-  test "enqueues AgentWebhookJob when moving to a webhook-enabled column with an agent that has a cron_id" do
+  test "enqueues AgentWebhookJob when moving to a webhook-enabled column with an agent that has an openclaw agent id" do
     agent = agents(:one_primary)
-    agent.update!(webhook_cron_id: "abc-123")
+    agent.update!(webhook_agent_id: "abc-123")
     target = columns(:one_in_progress)
     target.update!(assigned_agent: agent, webhook_enabled: true)
     task = tasks(:one)
@@ -155,7 +155,7 @@ class TaskTest < ActiveSupport::TestCase
 
   test "does not enqueue webhook when column webhook_enabled is false" do
     agent = agents(:one_primary)
-    agent.update!(webhook_cron_id: "abc-123")
+    agent.update!(webhook_agent_id: "abc-123")
     target = columns(:one_in_progress)
     target.update!(assigned_agent: agent, webhook_enabled: false)
     task = tasks(:one)
@@ -175,9 +175,9 @@ class TaskTest < ActiveSupport::TestCase
     end
   end
 
-  test "does not enqueue webhook when assigned agent has no webhook_cron_id" do
+  test "does not enqueue webhook when assigned agent has no webhook_agent_id" do
     agent = agents(:one_primary)
-    agent.update!(webhook_cron_id: nil)
+    agent.update!(webhook_agent_id: nil)
     target = columns(:one_in_progress)
     target.update!(assigned_agent: agent, webhook_enabled: true)
     task = tasks(:one)
@@ -189,7 +189,7 @@ class TaskTest < ActiveSupport::TestCase
 
   test "does not enqueue webhook on non-column updates" do
     agent = agents(:one_primary)
-    agent.update!(webhook_cron_id: "abc-123")
+    agent.update!(webhook_agent_id: "abc-123")
     target = columns(:one_inbox)
     target.update!(assigned_agent: agent, webhook_enabled: true)
     task = tasks(:one) # already in one_inbox

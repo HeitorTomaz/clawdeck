@@ -54,8 +54,8 @@
       <% webhook_disabled_reason =
            if column.assigned_agent.nil?
              "Defina o agente atribuido (assigned agent) antes de habilitar o webhook."
-           elsif column.assigned_agent.webhook_cron_id.blank?
-             "O agente atribuido nao tem webhook_cron_id. Defina em Agents."
+           elsif column.assigned_agent.webhook_agent_id.blank?
+             "O agente atribuido nao tem OpenClaw agent ID. Defina em Agents."
            end
       %>
       <div>
@@ -71,7 +71,7 @@
           <p class="mt-1 text-xs text-content-muted"><%= webhook_disabled_reason %></p>
         <% else %>
           <p class="mt-1 text-xs text-content-muted">
-            Invoca <code>cron.run</code> do OpenClaw configurado no agente.
+            Dispara <code>POST /hooks/agent</code> do OpenClaw para o agente configurado.
           </p>
         <% end %>
       </div>

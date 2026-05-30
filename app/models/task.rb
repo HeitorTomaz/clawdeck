@@ -214,7 +214,7 @@ class Task < ApplicationRecord
   def should_fire_webhook?
     saved_change_to_column_id? &&
       column&.webhook_enabled? &&
-      column.assigned_agent&.webhook_cron_id.present?
+      column.assigned_agent&.webhook_agent_id.present?
   end
 
   def enqueue_agent_webhook

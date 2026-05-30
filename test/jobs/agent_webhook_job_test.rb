@@ -5,7 +5,7 @@ class AgentWebhookJobTest < ActiveJob::TestCase
   setup do
     @task = tasks(:one)
     @agent = agents(:one_primary)
-    @agent.update!(webhook_cron_id: "11111111-2222-3333-4444-555555555555")
+    @agent.update!(webhook_agent_id: "11111111-2222-3333-4444-555555555555")
     @column = columns(:one_inbox)
     @column.update!(assigned_agent: @agent, webhook_enabled: true)
   end
@@ -37,8 +37,8 @@ class AgentWebhookJobTest < ActiveJob::TestCase
     end
   end
 
-  test "no-ops when assigned agent has no webhook_cron_id" do
-    @agent.update!(webhook_cron_id: nil)
+  test "no-ops when assigned agent has no webhook_agent_id" do
+    @agent.update!(webhook_agent_id: nil)
     AgentWebhookDispatcher.stub(:new, ->(*) { raise "should not be called" }) do
       assert_nothing_raised { AgentWebhookJob.new.perform(@task.id, @column.id) }
     end

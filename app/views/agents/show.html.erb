@@ -1,0 +1,59 @@
+<% content_for :title, @agent.name %>
+<% content_for :breadcrumb_standalone, "Agents" %>
+
+<div class="space-y-6 mt-12 max-w-2xl mx-auto px-4">
+  <div class="flex items-center justify-between gap-4">
+    <div>
+      <h2 class="text-2xl font-semibold tracking-[-0.025em] text-content"><%= @agent.name %></h2>
+      <% if @agent.description.present? %>
+        <p class="text-sm text-content-muted mt-1"><%= @agent.description %></p>
+      <% end %>
+    </div>
+    <div class="flex items-center gap-2">
+      <%= link_to "Back", agents_path,
+          class: "px-3 py-1.5 text-sm font-medium rounded-md border border-border text-content-secondary hover:bg-bg-hover hover:text-content transition-colors" %>
+      <%= link_to "Edit", edit_agent_path(@agent),
+          class: "px-3 py-1.5 text-sm font-medium rounded-md border border-border text-content-secondary hover:bg-bg-hover hover:text-content transition-colors" %>
+    </div>
+  </div>
+
+  <%# OpenClaw integration %>
+  <div class="bg-bg-elevated border border-border rounded-xl p-6 space-y-4">
+    <div>
+      <h3 class="text-base font-medium text-content">OpenClaw integration</h3>
+      <p class="text-sm text-content-muted mt-1">
+        Quando uma task entra em uma coluna deste agente (com webhook habilitado), o ClawDeck
+        dispara <code>POST /hooks/agent</code> no OpenClaw configurado, roteando para o agente abaixo.
+      </p>
+    </div>
+
+    <div class="text-sm">
+      <span class="text-content-muted">OpenClaw agent ID:</span>
+      <% if @agent.webhook_agent_id.present? %>
+        <span class="font-mono text-content"><%= @agent.webhook_agent_id %></span>
+      <% else %>
+        <span class="text-content-muted italic">nao definido — defina em <%= link_to "Edit", edit_agent_path(@agent), class: "underline" %></span>
+      <% end %>
+    </div>
+
+    <div data-controller="clipboard">
+      <div class="flex items-center justify-between mb-1.5">
+        <span class="text-sm font-medium text-content-muted">Prompt de configuracao do OpenClaw</span>
+        <button type="button"
+                data-action="click->clipboard#copy"
+                class="px-3 py-1.5 text-xs font-medium rounded-md border border-border text-content-secondary hover:bg-bg-hover transition-colors cursor-pointer">
+          <span data-clipboard-target="label">Copy</span>
+        </button>
+      </div>
+      <p class="text-xs text-content-muted mb-2">
+        Cole este texto no chat <code>main</code> do seu OpenClaw. Ele descreve exatamente — e somente — o que precisa ser configurado la.
+      </p>
+      <pre data-clipboard-target="source"
+           class="text-xs font-mono text-content bg-bg-base border border-border px-3 py-2.5 rounded-md whitespace-pre-wrap break-words m-0"><%= openclaw_setup_prompt(@agent) %></pre>
+    </div>
+  </div>
+
+  <p class="text-sm text-content-muted">
+    Gerencie os tokens de API deste agente na <%= link_to "lista de Agents", agents_path, class: "underline" %>.
+  </p>
+</div>

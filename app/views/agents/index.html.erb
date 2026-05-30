@@ -38,9 +38,9 @@
                   <%= agent.api_tokens.count %> token(s) ·
                   <%= assigned_task_count %> task(s) assigned
                 </div>
-                <% if agent.respond_to?(:webhook_cron_id) && agent.webhook_cron_id.present? %>
+                <% if agent.respond_to?(:webhook_agent_id) && agent.webhook_agent_id.present? %>
                   <div class="text-[11px] text-content-muted mt-1 font-mono break-all">
-                    OpenClaw cron: <span class="text-content-secondary"><%= agent.webhook_cron_id %></span>
+                    OpenClaw agent: <span class="text-content-secondary"><%= agent.webhook_agent_id %></span>
                   </div>
                 <% end %>
                 <% if assigned_columns.any? %>

@@ -87,6 +87,43 @@ sequenceDiagram
     API-->>A: 200
 ```
 
+### OpenClaw webhook (triggering an agent)
+
+Besides the polling loop above, ClawDeck can *push* work to an [OpenClaw](https://openclaw.ai)
+agent the moment a task lands on a column. This uses OpenClaw's native inbound
+webhook (`POST /hooks/agent`) — no operator/admin RPC surface needs to be exposed.
+
+How it wires up:
+
+- On a ClawDeck **Agent**, set the **OpenClaw agent ID** (e.g. `main`) — the id of
+  the OpenClaw agent that should run.
+- On a **Column**, enable *"trigger the agent's webhook"*. When a task enters that
+  column, ClawDeck enqueues a background job that POSTs to OpenClaw.
+- Configure two env vars on ClawDeck: `OPENCLAW_HOOKS_URL` (the gateway's
+  `…/hooks/agent` endpoint) and `OPENCLAW_HOOKS_TOKEN` (the dedicated `hooks.token`
+  shared secret). If either is blank, the dispatch is skipped (no error).
+
+```mermaid
+sequenceDiagram
+    participant UI as ClawDeck
+    participant JOB as AgentWebhookJob
+    participant OC as OpenClaw gateway
+
+    UI->>JOB: task enters webhook-enabled column
+    JOB->>OC: POST /hooks/agent (Bearer OPENCLAW_HOOKS_TOKEN)<br/>{ name, agentId, message }
+    OC->>OC: run the agent turn (agentId)
+    OC-->>JOB: 2xx (4xx = give up, 5xx = retry)
+```
+
+The request body is `{ "name": "clawdeck-task-<id>", "agentId": "<OpenClaw agent ID>",
+"message": "<task briefing>" }`. 2xx succeeds, 4xx is permanent (logged, no retry),
+5xx is transient (retried).
+
+**Setting up the OpenClaw side.** Each ClawDeck agent page generates a precise,
+copy-paste prompt to send to your OpenClaw `main` chat. It describes *only* the
+changes needed there: enable hooks (`hooks.enabled`), set `hooks.token`, and allow
+the agent id in `hooks.allowedAgentIds`. This keeps onboarding for new users simple.
+
 ---
 
 ## 🚀 Quick start (local Docker)

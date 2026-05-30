@@ -28,13 +28,14 @@
 
   <fieldset class="border-t border-border pt-4">
     <legend class="text-sm font-medium text-content mb-2">Webhook (optional)</legend>
-    <label class="block text-sm font-medium text-content mb-1.5">OpenClaw cron ID</label>
-    <%= form.text_field :webhook_cron_id,
-        placeholder: "e.g., 1fcd1b6f-082d-4264-81af-38ba49331f24",
+    <label class="block text-sm font-medium text-content mb-1.5">OpenClaw agent ID</label>
+    <%= form.text_field :webhook_agent_id,
+        placeholder: "e.g., main",
         class: "w-full px-3 py-2 text-sm bg-bg-base border border-border rounded-md focus-soft text-content placeholder:text-content-muted font-mono" %>
     <p class="mt-1 text-xs text-content-muted">
-      UUID do cron a invocar quando uma task entrar em uma coluna deste agente.
-      Veja <code>openclaw cron list</code> no servidor OpenClaw.
+      ID do agente OpenClaw a disparar (via <code>POST /hooks/agent</code>) quando uma task
+      entrar em uma coluna deste agente. Veja <code>openclaw agents list</code> no servidor OpenClaw.
+      Apos salvar, copie o prompt de configuracao do OpenClaw na pagina do agente.
     </p>
   </fieldset>
 
